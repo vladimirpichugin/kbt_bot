@@ -1,0 +1,15 @@
+# IntelliJ
+.idea
+
+# Python
+~*/
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+
+# Production
+settings.py
+.handler-saves
+logs/
