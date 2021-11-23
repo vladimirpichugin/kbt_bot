@@ -134,7 +134,31 @@ def callback_query_schedule_groups(call):
 @bot.message_handler(regexp='расписание')
 @bot.message_handler(commands=['raspisanie', 'расписание'])
 def schedule_select_group(message):
-	text, markup = cmd_schedule_groups(include_teacher=True)
+	client = message.client
+	subscribe_schedule_groups = client.get('schedule_groups', [])
+
+	if not subscribe_schedule_groups:
+		text, markup = cmd_schedule_groups(include_teacher=True)
+		bot.send_message(message.chat.id, text, reply_markup=markup)
+		return False
+
+	group_name = subscribe_schedule_groups[0]
+
+	day = CollegeScheduleAbc.get_weekday()
+
+	schedule = storage.get_schedule(date=day)
+	if not schedule:
+		text = L10n.get('schedule.not_found').format(
+			group_name=group_name,
+			date=day.strftime('%d.%m.%y')
+		)
+
+		bot.edit_message_text(text, message.chat.id, message.id, reply_markup=message.reply_markup)
+
+		return False
+
+	text, markup = cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, include_menu_button=True)
+
 	bot.send_message(message.chat.id, text, reply_markup=markup)
 
 
@@ -148,16 +172,20 @@ def callback_query_schedule_groups(call):
 	client = call.client
 	subscribe_schedule_groups = client.get('schedule_groups', [])
 
-	if faculty is True and not group_name and subscribe_schedule_groups:
-		group_name = subscribe_schedule_groups[0]
-		faculty = None
+	if group_name == 'my_group':
+		if subscribe_schedule_groups:
+			group_name = subscribe_schedule_groups[0]
+			faculty = None
+		else:
+			group_name = None
+			faculty = True
 
 	if not group_name and (not faculty or faculty == True):
 		text, markup = cmd_schedule_groups(include_teacher=True)
 		bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
 		return False
 
-	if faculty and faculty not in Settings.GROUPS:
+	if faculty and type(faculty) == str and faculty not in Settings.GROUPS:
 		bot.answer_callback_query(
 			callback_query_id=call.id,
 			text=L10n.get("schedule.faculty_not_found").format(faculty=faculty),
@@ -217,77 +245,19 @@ def callback_query_schedule_groups(call):
 		return False
 
 	day = CollegeScheduleAbc.get_weekday()
-	day_fmt = day.strftime('%d.%m.%y')
 
 	schedule = storage.get_schedule(date=day)
-
 	if not schedule:
 		text = L10n.get('schedule.not_found').format(
 			group_name=group_name,
-			date=day_fmt
+			date=day.strftime('%d.%m.%y')
 		)
 
 		bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=call.message.reply_markup)
 
 		return False
 
-	lessons_text = []
-	link = Settings.DOMAIN + schedule.get('link') if schedule.get('link') else None
-	groups = schedule.get('data')
-
-	for group in groups:
-		if group.get('group') != group_name:
-			continue
-
-		room = group.get('room')
-		lessons = group.get('lessons')
-
-		if not any(lessons):
-			break
-
-		for lesson in lessons:
-			if not lesson:
-				continue
-
-			if lesson[-1].lower() in ['ауд.', 'ауд']:
-				del lesson[-1]
-
-			lessons_text.append('\n'.join(lesson))
-		lessons_text = '\n\n'.join(['<b>№ {}.</b> {}'.format(num+1, value) for num, value in enumerate(lessons_text)])
-
-		break
-
-	if lessons_text:
-		text = L10n.get('schedule.body').format(
-			date=day_fmt,
-			group_name=group_name,
-			room=room,
-			lessons=lessons_text
-		)
-	else:
-		text = L10n.get('schedule.not_found.group').format(
-			group_name=group_name,
-			date=day_fmt
-		)
-
-	_, markup = cmd_schedule_groups(faculty=faculty)
-
-	if group_name in subscribe_schedule_groups:
-		text += '\n\n' + L10n.get('schedule.subscribe.status.subscribed').format(group_name=group_name)
-		markup.row(
-			InlineKeyboardButton(L10n.get('schedule.unsubscribe.button').format(group_name=group_name), callback_data=json.dumps({'group_name': group_name, 'unsubscribe': True}))
-		)
-	else:
-		if not subscribe_schedule_groups:
-			text += '\n\n' + L10n.get('schedule.subscribe.status.not_subscribed').format(group_name=group_name)
-		markup.row(
-			InlineKeyboardButton(L10n.get('schedule.subscribe.button').format(group_name=group_name), callback_data=json.dumps({'group_name': group_name, 'subscribe': True}))
-		)
-
-	if link:
-		markup.row(
-			InlineKeyboardButton(L10n.get('schedule.open_site.button'), url=link)
-		)
+	text, markup = cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day)
 
 	bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
 
@@ -353,7 +323,7 @@ def callback_query_contacts(call):
 		markup = InlineKeyboardMarkup()
 
 		markup.row(
-			InlineKeyboardButton('Как добраться?', callback_data=json.dumps({'contacts': 'address'}))
+			InlineKeyboardButton(L10n.get('contacts.address.button'), callback_data=json.dumps({'contacts': 'address'}))
 		)
 
 		markup.row(
