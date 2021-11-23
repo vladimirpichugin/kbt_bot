@@ -30,6 +30,15 @@ class Storage:
 
         return client
 
+    def get_clients(self):
+        data = self.clients.find()
+
+        clients = []
+        for _ in data:
+            clients.append(Client(_))
+
+        return clients
+
     def get_schedule(self, date: datetime.datetime):
         key = date.strftime('%d-%m-%y')
 
