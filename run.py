@@ -3,6 +3,7 @@
 
 import time
 import threading
+import schedule
 
 import bot
 
@@ -14,18 +15,23 @@ if __name__ == "__main__":
     thread_schedule.daemon = True
     thread_schedule.start()
 
+    schedule.every().day.at('16:00').do(bot.run_threaded, name='NotifyThread', func=bot.schedule_notify)
+
     bot.logger.debug("Initializing bot polling..")
-    bot_thread = threading.Thread(target=bot.bot_polling)
-    bot_thread.setName('BotThread')
-    bot_thread.daemon = True
-    bot_thread.start()
+    thread_bot = threading.Thread(target=bot.bot_polling)
+    thread_bot.setName('BotThread')
+    thread_bot.daemon = True
+    thread_bot.start()
 
     # Поддерживать работу основной программы, пока бот работает.
     while True:
         try:
-            if not bot_thread.is_alive():
+            if not thread_bot.is_alive():
                 bot.logger.error("Bot polling pool is not alive, shutting down..")
                 break
+
+            schedule.run_pending()
+
             time.sleep(10)
         except KeyboardInterrupt:
             bot.logger.info("Shutting down..")

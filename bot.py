@@ -2,6 +2,7 @@
 # Author: Vladimir Pichugin <vladimir@pichug.in>
 import traceback
 import telebot
+import threading
 from time import sleep
 
 from utils import *
@@ -31,6 +32,12 @@ bot = telebot.TeleBot(Settings.BOT_TOKEN, parse_mode='html')
 
 bot.enable_save_next_step_handlers(delay=3)
 bot.load_next_step_handlers()
+
+
+def run_threaded(name, func):
+	job_thread = threading.Thread(target=func)
+	job_thread.setName(f'{name}Thread')
+	job_thread.start()
 
 
 def bot_polling():
@@ -87,6 +94,43 @@ def schedule_polling():
 			sleep(t)
 	except Exception:
 		logger.error('Schedule polling loop crashed', exc_info=True)
+
+
+def schedule_notify():
+	while True:
+		day = CollegeScheduleAbc.get_weekday()
+		schedule = storage.get_schedule(date=day)
+
+		if not schedule:
+			logger.error('Не смог получить расписание, попробую через 10 минут.')
+			sleep(60 * 10)  # Try again
+			continue
+
+		clients = storage.get_clients()
+
+		groups_clients = {}
+		for client in clients:
+			client_id = client.get_id()
+			schedule_groups = client.get('schedule_groups', [])
+
+			if not schedule_groups:
+				continue
+
+			for group in schedule_groups:
+				if group not in groups_clients.keys():
+					groups_clients[group] = []
+
+				if client_id not in groups_clients[group]:
+					groups_clients[group].append(client_id)
+
+		for group_name in groups_clients.keys():
+			text, markup = cmd_schedule_group(schedule, group_name, [group_name], day, include_back_button=False)
+
+			group_clients_ids = groups_clients[group_name]
+			for client_id in group_clients_ids:
+				bot.send_message(client_id, text, reply_markup=markup)
+
+		break  # ok.
 
 
 @bot.middleware_handler(update_types=['message'])
