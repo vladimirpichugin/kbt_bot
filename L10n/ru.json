@@ -10,13 +10,13 @@
 
     "schedule.not_found": "&#10071; Расписание на <b>{date}</b> не опубликовано.",
     "schedule.not_found.group": "&#10071; Нет расписания для группы <b>{group_name}</b> на <b>{date}</b>.",
-    "schedule.body": "Расписание на <b>{date}</b>\\nГруппа <b>{group_name} ({room})</b>\\n\\n{lessons}",
+    "schedule.body": "Расписание на <b>{date}</b>\nГруппа <b>{group_name} <u>{room}</u></b>\n\n{lessons}",
     "schedule.faculty_not_found": "Группы «{faculty}» не найдены.",
-    "schedule.unsubscribe": "&#10071; Вы отписались от раписания группы <b>{group_name}</b>.",
-    "schedule.unsubscribe.alert": "Вы отписались от раписания группы «{group_name}».",
-    "schedule.subscribe": "&#9989; Вы подписались на раписание группы <b>{group_name}</b>.",
-    "schedule.subscribe.alert": "Вы подписались на раписание группы «{group_name}».",
-    "schedule.subscribe.status.subscribed": "&#9989; Вы подписаны на раписание группы <b>{group_name}</b>.",
+    "schedule.unsubscribe": "&#10071; Вы отписались от расписание группы <b>{group_name}</b>.",
+    "schedule.unsubscribe.alert": "Вы отписались от расписание группы «{group_name}».",
+    "schedule.subscribe": "&#9989; Вы подписались на расписание группы <b>{group_name}</b>.",
+    "schedule.subscribe.alert": "Вы подписались на расписание группы «{group_name}».",
+    "schedule.subscribe.status.subscribed": "&#9989; Вы подписаны на расписание группы <b>{group_name}</b>.",
     "schedule.subscribe.status.not_subscribed": "Вы можете подписаться на расписание группы <b>{group_name}</b>.",
 
     "schedule.button": "Открыть расписание",
@@ -28,6 +28,7 @@
     "contacts.staff.button": "Руководство. Педагогический состав",
     "contacts.staff.button.link": "https://cbcol.mskobr.ru/info_edu/staff?utm_source=telegram_bot&utm_medium=MosKBT_BOT",
     "contacts.address": "Как добраться?\n\nВыход из метро Улица 1905 года (последний вагон из центра) к площади Краснопресненская застава. Автобусная остановка Метро \"Улица 1905 года\" около ресторана \"16 тонн\" (автобус: 12, т18; троллейбус: 54). Ехать до остановки \"Большой Тишинский переулок\".\n\nВыход из метро Белорусская к площади Тверская застава. Далее на улицу Грузинский вал до остановки \"Большой Кондратьевский переулок\" (автобус: 12, т18). Ехать до остановки \"Большой Тишинский переулок\".",
+    "contacts.address.button": "Как добраться?",
 
     "abiturient": "Абитуриенту",
 
