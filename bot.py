@@ -135,16 +135,6 @@ def callback_query_schedule_groups(call):
 @bot.message_handler(commands=['raspisanie', 'расписание'])
 def schedule_select_group(message):
 	text, markup = cmd_schedule_groups(include_teacher=True)
-
-	client = message.client
-
-	schedule_groups = client.get('schedule_groups', [])
-	if schedule_groups:
-		if len(schedule_groups) > 1:
-			text += L10n.get('schedule.many').format(groups_names=', '.join([f'<b>{group_name}</b>' for group_name in schedule_groups]))
-		else:
-			text += L10n.get('schedule').format(schedule_groups[0])
-
 	bot.send_message(message.chat.id, text, reply_markup=markup)
 
 
@@ -158,18 +148,13 @@ def callback_query_schedule_groups(call):
 	client = call.client
 	subscribe_schedule_groups = client.get('schedule_groups', [])
 
+	if faculty is True and not group_name and subscribe_schedule_groups:
+		group_name = subscribe_schedule_groups[0]
+		faculty = None
+
 	if not group_name and (not faculty or faculty == True):
 		text, markup = cmd_schedule_groups(include_teacher=True)
-
-		if subscribe_schedule_groups:
-			if len(subscribe_schedule_groups) > 1:
-				text += L10n.get('schedule').format(
-					', '.join([f'<b>{group_name}</b>' for group_name in subscribe_schedule_groups]))
-			else:
-				text += L10n.get('schedule').format(group_name=subscribe_schedule_groups[0])
-
 		bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
-
 		return False
 
 	if faculty and faculty not in Settings.GROUPS:
@@ -290,18 +275,18 @@ def callback_query_schedule_groups(call):
 	if group_name in subscribe_schedule_groups:
 		text += '\n\n' + L10n.get('schedule.subscribe.status.subscribed').format(group_name=group_name)
 		markup.row(
-			InlineKeyboardButton(L10n.get('schedule.unsubscribe.button'), callback_data=json.dumps({'group_name': group_name, 'unsubscribe': True}))
+			InlineKeyboardButton(L10n.get('schedule.unsubscribe.button').format(group_name=group_name), callback_data=json.dumps({'group_name': group_name, 'unsubscribe': True}))
 		)
 	else:
 		if not subscribe_schedule_groups:
 			text += '\n\n' + L10n.get('schedule.subscribe.status.not_subscribed').format(group_name=group_name)
 		markup.row(
-			InlineKeyboardButton(L10n.get('schedule.subscribe.button'), callback_data=json.dumps({'group_name': group_name, 'subscribe': True}))
+			InlineKeyboardButton(L10n.get('schedule.subscribe.button').format(group_name=group_name), callback_data=json.dumps({'group_name': group_name, 'subscribe': True}))
 		)
 
 	if link:
 		markup.row(
-			InlineKeyboardButton('Открыть расписание', url=link)
+			InlineKeyboardButton(L10n.get('schedule.open_site.button'), url=link)
 		)
 
 	bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
