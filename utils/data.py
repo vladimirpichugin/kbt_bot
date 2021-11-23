@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: Vladimir Pichugin <vladimir@pichug.in>
-
+import datetime
 
 class SDict(dict):
     def __init__(self, *args, **kwargs):
@@ -66,3 +66,7 @@ class Client(SDict):
     def create(data):
         return Client(data)
 
+
+class ScheduleArticle(SDict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

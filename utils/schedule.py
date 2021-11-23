@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 # Author: Vladimir Pichugin <vladimir@pichug.in>
-
 import re
 import datetime
 import requests
 from bs4 import BeautifulSoup
+
+from .data import ScheduleArticle
 
 
 class CollegeScheduleGrabber:
     def __init__(self, domain, blog_path):
         self.domain = domain
         self.blog_path = blog_path
-        self.pattern = re.compile(r'^(?P<c>([А-Я]{1,2}))(\s)?(?P<n>[0-9]{2})([\s\-])?(?P<y>[0-9]{2})', flags=re.IGNORECASE)
 
-    def get_blog(self):
+    def parse_articles(self) -> list:
         link = self.domain + self.blog_path
 
         blog_content = requests.get(link)
@@ -31,9 +31,10 @@ class CollegeScheduleGrabber:
 
             articles.append((text, href))
 
-        return tuple(articles)
+        return articles
 
-    def get_article(self, article_path: str):
+    def parse_article(self, article_path: str) -> list:
+        pattern = re.compile(r'^(?P<c>([А-Я]{1,2}))(\s)?(?P<n>[0-9]{2})([\s\-])?(?P<y>[0-9]{2})\s(?P<r>.+)?', flags=re.IGNORECASE)
         link = self.domain + article_path
 
         schedule_content = requests.get(link)
@@ -42,7 +43,7 @@ class CollegeScheduleGrabber:
 
         tables = soup.find("div", class_="kris-post-item-txt").find("div").find_all("table")
 
-        groups = {}
+        schedule = []
         for table_index, table in enumerate(tables):
             g_s_c = table.find("tbody").find_all("tr")
 
@@ -53,20 +54,28 @@ class CollegeScheduleGrabber:
                     _rows = rows.find_all("p")
 
                     for r_i, row in enumerate([_.text for _ in _rows]):
-                        r = self.pattern.search(row)
+                        r = pattern.search(row)
 
                         if r:
                             lessons = []
                             for i in range(1, 5):
                                 lessons.append(g_s_c[r_i + i].find_all("td")[c_r_i].text.replace(u'\xa0', ''))
-                            groups[r.group('c') + r.group('n') + '-' + r.group('y')] = lessons
 
-        return groups
+                            group_name = r.group('c') + r.group('n') + '-' + r.group('y')
+                            room = r.group('r')
+
+                            schedule.append({
+                                'group': group_name,
+                                'room': room,
+                                'lessons': lessons,
+                            })
+
+        return schedule
 
 
 class CollegeScheduleAbc:
     @staticmethod
-    def format_lessons(lessons: list):
+    def parse_lessons(lessons: list):
         lessons_f = []
 
         for lesson in lessons:
@@ -77,12 +86,13 @@ class CollegeScheduleAbc:
         return lessons_f
 
     @staticmethod
-    def find_article(day_dt, articles: list):
+    def get_articles(articles: list) -> list:
         pattern = re.compile('(?P<d>([0-9]{2}))\s+(?P<m>([а-я]{3}))', flags=re.IGNORECASE)
         months = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
 
-        for title, link in articles:
-            article_date = re.search(pattern, title)
+        parsed_articles = []
+        for article_title, article_link in articles:
+            article_date = re.search(pattern, article_title)
 
             if not article_date:
                 continue
@@ -90,18 +100,34 @@ class CollegeScheduleAbc:
             article_day, article_month = int(article_date.group('d')), str(article_date.group('m'))
             article_month_num = months.index(article_month)+1
 
-            article_day_dt = datetime.datetime(day=article_day, month=article_month_num, year=datetime.datetime.now().year)
+            day = datetime.datetime(
+                day=article_day,
+                month=article_month_num,
+                year=datetime.datetime.now().year
+            )
 
-            if article_day_dt.month == day_dt.month and article_day_dt.day == day_dt.day:
-                return link
+            parsed_articles.append(
+                ScheduleArticle(title=article_title, link=article_link, date=day)
+            )
+
+        return parsed_articles
+
+    @staticmethod
+    def find_article(articles: list, date: datetime.datetime = None):
+        for article in articles:
+            if article.date == date:
+                return article
 
         return None
 
     @staticmethod
-    def get_day():
-        today = datetime.datetime.today().date()
+    def get_weekday():
+        dt = datetime.datetime.today()
 
-        if today.isoweekday() in [6, 7]:
-            return today + datetime.timedelta(days=-today.weekday(), weeks=1)
+        if dt.isoweekday() >= 6 or (dt.isoweekday() == 5 and dt.hour >= 5):
+            return dt + datetime.timedelta(days=-dt.weekday(), weeks=1)
 
-        return today + datetime.timedelta(days=1)
+        if dt.hour >= 5:
+            return dt + datetime.timedelta(days=1)
+
+        return dt

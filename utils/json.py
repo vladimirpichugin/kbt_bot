@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # Author: Vladimir Pichugin <vladimir@pichug.in>
-
 import json
 
 from .helpers import init_logger
@@ -22,6 +21,7 @@ class Json:
             except Exception:
                 logger.error('Error parsing {0} as JSON'.format(self.file), exc_info=True)
                 parsed = {}
+
         return parsed
 
     def get(self, item, fallback=None):
@@ -31,4 +31,5 @@ class Json:
         except KeyError:
             logger.warning('Could not grab data from L10n key {0}.'.format(item, fallback))
             data = fallback
+
         return data

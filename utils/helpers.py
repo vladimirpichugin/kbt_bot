@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 # Author: Vladimir Pichugin <vladimir@pichug.in>
-
 import pathlib
 import os
 import logging
 import inspect
-from telebot.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
 
 from settings import Settings
 
@@ -60,27 +58,3 @@ def get_logger_stream_handler():
     stream_handler.setFormatter(get_logger_formatter(u'[%(asctime)s] %(levelname)-6s %(threadName)-14s: %(message)s'))
 
     return stream_handler
-
-
-def gen_help():
-    markup = ReplyKeyboardMarkup(True, True)
-
-    markup.row('Расписание занятий')
-    markup.row('Справка об обучении')
-
-    text = 'Помощь.'
-
-    return text, markup
-
-
-def gen_schedule_groups():
-    text = "Выбирай группу."
-
-    markup = InlineKeyboardMarkup()
-
-    for _ in range(0, len(Settings.GROUPS), 4):
-        buttons = [InlineKeyboardButton(group_name, callback_data=group_name) for group_name in
-                   list(Settings.GROUPS.keys())[_:_ + 4]]
-        markup.row(*buttons)
-
-    return text, markup
