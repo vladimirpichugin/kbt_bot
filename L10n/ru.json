@@ -1,12 +1,16 @@
 {
     "start": "Чат-бот Московского колледжа бизнес-технологий.\n\nВозможности:\n&#8226; Подписка на расписание группы;\n&#8226; Заказ документов;\n&#8226; Сведения об образовательной организации.",
-    "start.open_keyboard": "Открыл постоянную клавиатуру.",
-
-    "menu": "Воспользуйтесь кнопками, чтобы выбрать нужную команду.",
 
     "start.button.schedule": "Расписание",
     "start.button.docs.student_proof": "Справка об обучении",
     "start.button.faq": "FAQ",
+
+    "menu": "Воспользуйтесь кнопками, чтобы выбрать нужную команду.",
+
+    "menu.button": "<< Меню",
+    "back.button": "<< Назад",
+    "previous.button": "<< Предыдущий",
+    "next.button": "Следующий >>",
 
     "schedule.not_found": "&#10071; Расписание на <b>{date}</b> не опубликовано.",
     "schedule.not_found.group": "&#10071; Нет расписания для группы <b>{group_name}</b> на <b>{date}</b>.",
@@ -18,19 +22,16 @@
     "schedule.subscribe.alert": "Вы подписались на расписание группы «{group_name}».",
     "schedule.subscribe.status.subscribed": "&#9989; Вы подписаны на расписание группы <b>{group_name}</b>.",
     "schedule.subscribe.status.not_subscribed": "Вы можете подписаться на расписание группы <b>{group_name}</b>.",
-
     "schedule.button": "Открыть расписание",
     "schedule.subscribe.button": "Подписаться на «{group_name}»",
     "schedule.unsubscribe.button": "Отписаться от «{group_name}»",
     "schedule.open_site.button": "Смотреть на сайте",
 
-    "contacts": "Контактные данные\n\nДиректор:\nАверьянова Лариса Васильевна\n+7 985 921-64-04\n<code>AveryanovaLV1@edu.mos.ru</code>\n\nСекретарь:\nКустова Ольга Анатольевна\n+7 499 253-59-31\n\nАдрес электронной почты:\n<code>kbt@edu.mos.ru</code>",
+    "contacts": "Контактные данные\n\nСекретарь:\nКустова Ольга Анатольевна\n+7 499 253-59-31\n\nЭлектронная почта:\n<code>kbt@edu.mos.ru</code>",
     "contacts.staff.button": "Руководство. Педагогический состав",
     "contacts.staff.button.link": "https://cbcol.mskobr.ru/info_edu/staff?utm_source=telegram_bot&utm_medium=MosKBT_BOT",
-    "contacts.address": "Как добраться?\n\nВыход из метро Улица 1905 года (последний вагон из центра) к площади Краснопресненская застава. Автобусная остановка Метро \"Улица 1905 года\" около ресторана \"16 тонн\" (автобус: 12, т18; троллейбус: 54). Ехать до остановки \"Большой Тишинский переулок\".\n\nВыход из метро Белорусская к площади Тверская застава. Далее на улицу Грузинский вал до остановки \"Большой Кондратьевский переулок\" (автобус: 12, т18). Ехать до остановки \"Большой Тишинский переулок\".",
+    "contacts.address": "Как добраться?\n\nВыход из метро Улица 1905 года (последний вагон из центра) к площади Краснопресненская застава. Автобусная остановка Метро \"Улица 1905 года\" около ресторана \"16 Тонн\" (автобус: 12, 54; т18). Ехать до остановки \"Большой Тишинский переулок\".\n\nВыход из метро Белорусская к площади Тверская застава. Далее на улицу Грузинский вал до остановки \"Большой Кондратьевский переулок\" (автобус: 12, т18). Ехать до остановки \"Большой Тишинский переулок\".",
     "contacts.address.button": "Как добраться?",
-
-    "abiturient": "Абитуриенту",
 
     "faq.body": "Вопрос {qid} из {qmax}:\n<b>{q}</b>\n\n{a}",
 
@@ -75,40 +76,16 @@
     "faq.12.q": "Как узнать, поступил(а) я или нет?",
     "faq.12.a": "В период с 01 июля по 25 августа на сайте колледже в разделе \"Приемная комиссия\" публикуются данные по среднему баллу аттестата абитуриентов. Эти данные могут помочь Вам спрогнозировать вероятность поступления на бюджетное место по выбранной специальности.",
 
-    "docs": "Выберите тип справки.",
-    "docs.student_proof": "Справка об обучении",
-
+    "abiturient": "Абитуриенту",
     "abiturient.0.button": "Приёмная комиссия",
     "abiturient.0.button.link": "https://cbcol.mskobr.ru/abiturientam?utm_source=telegram_bot&utm_medium=MosKBT_BOT",
-
     "abiturient.1.button": "Списки на зачисление",
     "abiturient.1.button.link": "https://cbcol.mskobr.ru/abiturientam/rekomendovannyie-k-zachisleniyu?utm_source=telegram_bot&utm_medium=MosKBT_BOT",
-
     "abiturient.2.button": "на базе 9 классов",
     "abiturient.2.button.link": "https://cbcol.mskobr.ru/abiturientam/spetsialnosti-na-baze-9-klassov?utm_source=telegram_bot&utm_medium=MosKBT_BOT",
-
     "abiturient.3.button": "на базе 11 классов",
     "abiturient.3.button.link": "https://cbcol.mskobr.ru/abiturientam/spetsialnosti-na-baze-11-klassov?utm_source=telegram_bot&utm_medium=MosKBT_BOT",
 
-    "abiturient.4.button": "",
-    "abiturient.4.button.link": "",
-
-    "error": "&#10071; Возникла ошибка. Мы искренне сожалеем о том, что вы столкнулись с такой ситуацией.",
-    "maintenance.bot": "&#10071; Бот отключен для проведения технического обслуживания.",
-    "maintenance.cmd": "&#10071; Команда отключена для проведения технического обслуживания.",
-
-    "permissions.required.staff": "&#10060; Только персонал может использовать эту команду.",
-    "permissions.required.admin": "&#10060; Только администратор может использовать эту команду.",
-    "permissions.required.developer": "&#10060; Только разработчик может использовать эту команду.",
-
-    "cmd.is_admin.yes": "&#9989; Вы являетесь администратором.",
-    "cmd.is_admin.no": "&#10060; Вы не являетесь администратором.",
-    "cmd.is_staff.yes": "&#9989; Вы являетесь персоналом.",
-    "cmd.is_staff.no": "&#10060; Вы не являетесь персоналом.",
-
-    "menu.button": "<< Меню",
-    "back.button": "<< Назад",
-
-    "previous.button": "<< Предыдущий",
-    "next.button": "Следующий >>"
+    "docs": "Выберите тип справки.",
+    "docs.student_proof": "Справка об обучении"
 }
