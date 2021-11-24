@@ -97,22 +97,33 @@ def schedule_polling():
 
 
 def schedule_notify():
+	t = Settings.SCHEDULE_NOTIFY_PAUSE_TIME
+
 	while True:
-		t = Settings.SCHEDULE_NOTIFY_PAUSE_TIME
+		today = datetime.datetime.today()
+
+		if today.isoweekday() >= 6:
+			logger.info(f'По выходным рассылка не отправляется.')
+			break  # Ok.
+
+		if today.hour >= 23:
+			logger.error(f'Рассылка отменена, вышли за границы времени.')
+			break  # Fail.
+
 		day = CollegeScheduleAbc.get_weekday(next_day=True)
 
 		schedule = storage.get_schedule(date=day)
 		if not schedule:
-			logger.error(f'Не смог получить расписание на {day}, попробую через {t / 60} минут.')
+			logger.error(f'Рассылка отменена, нет расписания на {day}. Повторная попытка через {t / 60} минут.')
 			logger.debug(f'schedule: {schedule}')
 			sleep(t)
-			continue
+			continue  # Try again.
 
 		clients = storage.get_clients()
 		if not clients:
-			logger.error(f'Не смог получить клиентов, попробую через {t / 60} минут.')
+			logger.error(f'Рассылка отменена, нет получателей. Повторная попытка через {t / 60} минут.')
 			sleep(t)
-			continue
+			continue  # Try again.
 
 		groups_clients = {}
 		for client in clients:
@@ -137,10 +148,10 @@ def schedule_notify():
 				try:
 					bot.send_message(client_id, text, reply_markup=markup)
 				except Exception as e:
-					logger.error(f'Не смог отправить расписание клиенту <{client_id}>', exc_info=True)
+					logger.error(f'Ошибка при отправке сообщения клиенту <{client_id}>', exc_info=True)
 
 		logger.debug('Рассылка завершена.')
-		break  # ok.
+		break  # OK.
 
 
 @bot.middleware_handler(update_types=['message'])
@@ -167,21 +178,21 @@ def middleware_handler_callback_query(bot_instance, call):
 @bot.message_handler(commands=['start', 'старт'])
 def start(message):
 	text, markup = cmd_start()
-	text += '\n\n' + L10n.get('menu')
+	text += '\n\n' + L10n.get('start.menu')
 	bot.send_message(message.chat.id, text, reply_markup=markup)
 
 
 @bot.message_handler(commands=['menu', 'меню'])
 def menu(message):
 	text, markup = cmd_start()
-	text = L10n.get('menu')
+	text = L10n.get('start.menu')
 	bot.send_message(message.chat.id, text, reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: call.parsed_data.get('menu'))
 def callback_query_schedule_groups(call):
 	text, markup = cmd_start()
-	text = L10n.get('menu')
+	text = L10n.get('start.menu')
 	bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
 
 
@@ -372,6 +383,26 @@ def callback_query_contacts(call):
 		markup.row(
 			InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'contacts': True}))
 		)
+	elif contacts == 'social_networks':
+		text = L10n.get('contacts.social_networks')
+		markup = InlineKeyboardMarkup()
+
+		markup.row(
+			InlineKeyboardButton(L10n.get('contacts.social_networks.telegram.button'), url=L10n.get('contacts.social_networks.telegram.button.link'))
+		)
+
+		markup.row(
+			InlineKeyboardButton(L10n.get('contacts.social_networks.vk.button'), url=L10n.get('contacts.social_networks.vk.button.link')),
+			InlineKeyboardButton(L10n.get('contacts.social_networks.facebook.button'), url=L10n.get('contacts.social_networks.facebook.button.link'))
+		)
+
+		markup.row(
+			InlineKeyboardButton(L10n.get('contacts.social_networks.website.button'), url=L10n.get('contacts.social_networks.website.button.link'))
+		)
+
+		markup.row(
+			InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+		)
 	else:
 		text = L10n.get('contacts')
 		markup = InlineKeyboardMarkup()
@@ -381,9 +412,12 @@ def callback_query_contacts(call):
 		)
 
 		markup.row(
-			InlineKeyboardButton(L10n.get('contacts.staff.button'), url=L10n.get('contacts.staff.button.link'))
+			InlineKeyboardButton(L10n.get('contacts.virtual_tour.button'), url=L10n.get('contacts.virtual_tour.button.link'))
 		)
 
+		markup.row(
+			InlineKeyboardButton(L10n.get('contacts.staff.button'), url=L10n.get('contacts.staff.button.link'))
+		)
 		markup.row(
 			InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
 		)

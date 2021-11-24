@@ -20,27 +20,23 @@ def cmd_start():
     markup = InlineKeyboardMarkup()
 
     markup.row(
-        InlineKeyboardButton(L10n.get('start.button.schedule'), callback_data=json.dumps({'group_name': 'my_group'})),
-        InlineKeyboardButton(L10n.get('start.button.faq'), callback_data=json.dumps({'faq': 'home'}))
+        InlineKeyboardButton(L10n.get('start.button.schedule'), callback_data=json.dumps({'group_name': 'my_group'}))
+    )
+
+    # todo: Добавить поддержку получения расписания по ФИО.
+    #markup.row(
+    #    InlineKeyboardButton(L10n.get('start.button.docs.student_proof'), callback_data=json.dumps({'docs': 'student_proof'}))
+    #)
+
+    markup.row(
+        InlineKeyboardButton(L10n.get('start.button.abiturient'), callback_data=json.dumps({'abiturient': True})),
+        InlineKeyboardButton(L10n.get('start.button.contacts'), callback_data=json.dumps({'contacts': True}))
     )
 
     markup.row(
-        InlineKeyboardButton('Контактные данные', callback_data=json.dumps({'contacts': True}))
+        InlineKeyboardButton(L10n.get('start.button.social_networks'), callback_data=json.dumps({'contacts': 'social_networks'})),
+        InlineKeyboardButton(L10n.get('start.button.website'), url=L10n.get('start.button.website.link')),
     )
-
-    markup.row(
-        InlineKeyboardButton('Абитуриенту', callback_data=json.dumps({'abiturient': True}))
-    )
-
-    markup.row(
-        InlineKeyboardButton('Сайт колледжа', url='https://cbcol.mskobr.ru?utm_source=telegram_bot&utm_medium=MosKBT_BOT')
-    )
-
-    markup.row(
-        InlineKeyboardButton('Виртуальный тур по колледжу', url='https://youtu.be/jyBouaJ_pAY')
-    )
-
-    # InlineKeyboardButton(L10n.get('start.button.docs.student_proof'), callback_data=json.dumps({'docs': 'student_proof'}))
 
     return text, markup
 
@@ -50,7 +46,7 @@ def cmd_abiturient():
     markup = InlineKeyboardMarkup()
 
     markup.row(
-        InlineKeyboardButton(L10n.get('abiturient.0.button'), url=L10n.get('abiturient.0.button.link'))
+        InlineKeyboardButton(L10n.get('abiturient.button.faq'), callback_data=json.dumps({'faq': 'home'}))
     )
 
     markup.row(
@@ -60,6 +56,10 @@ def cmd_abiturient():
     markup.row(
         InlineKeyboardButton(L10n.get('abiturient.2.button'), url=L10n.get('abiturient.2.button.link')),
         InlineKeyboardButton(L10n.get('abiturient.3.button'), url=L10n.get('abiturient.3.button.link'))
+    )
+
+    markup.row(
+        InlineKeyboardButton(L10n.get('abiturient.4.button'), url=L10n.get('abiturient.4.button.link'))
     )
 
     markup.row(
@@ -145,7 +145,7 @@ def cmd_faq(faq=None, include_menu=False):
 
     if include_menu:
         markup.row(
-            InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+            InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'abiturient': True}))
         )
 
     return text, markup
@@ -173,7 +173,7 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
             continue
 
         room = group.get('room')
-        if room in ['ауд.', 'ауд']:
+        if room in ['ауд.', 'ауд']:  # todo: Заменить на регулярку
             room = ''
 
         lessons = group.get('lessons')
@@ -185,7 +185,7 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
             if not lesson:
                 continue
 
-            if lesson[-1].lower() in ['ауд.', 'ауд']:
+            if lesson[-1].lower() in ['ауд.', 'ауд']:  # todo: Заменить на регулярку
                 del lesson[-1]
 
             lessons_text.append('\n'.join(lesson))
