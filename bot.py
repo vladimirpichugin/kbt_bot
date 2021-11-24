@@ -98,15 +98,21 @@ def schedule_polling():
 
 def schedule_notify():
 	while True:
-		day = CollegeScheduleAbc.get_weekday()
-		schedule = storage.get_schedule(date=day)
+		t = Settings.SCHEDULE_NOTIFY_PAUSE_TIME
+		day = CollegeScheduleAbc.get_weekday(next_day=True)
 
+		schedule = storage.get_schedule(date=day)
 		if not schedule:
-			logger.error('Не смог получить расписание, попробую через 10 минут.')
-			sleep(60 * 10)  # Try again
+			logger.error(f'Не смог получить расписание на {day}, попробую через {t / 60} минут.')
+			logger.debug(f'schedule: {schedule}')
+			sleep(t)
 			continue
 
 		clients = storage.get_clients()
+		if not clients:
+			logger.error(f'Не смог получить клиентов, попробую через {t / 60} минут.')
+			sleep(t)
+			continue
 
 		groups_clients = {}
 		for client in clients:
@@ -128,8 +134,12 @@ def schedule_notify():
 
 			group_clients_ids = groups_clients[group_name]
 			for client_id in group_clients_ids:
-				bot.send_message(client_id, text, reply_markup=markup)
+				try:
+					bot.send_message(client_id, text, reply_markup=markup)
+				except Exception as e:
+					logger.error(f'Не смог отправить расписание клиенту <{client_id}>', exc_info=True)
 
+		logger.debug('Рассылка завершена.')
 		break  # ok.
 
 

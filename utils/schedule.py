@@ -121,13 +121,13 @@ class CollegeScheduleAbc:
         return None
 
     @staticmethod
-    def get_weekday():
+    def get_weekday(next_day=False):
         dt = datetime.datetime.today()
 
         if dt.isoweekday() >= 6 or (dt.isoweekday() == 5 and dt.hour >= 17):
             return dt + datetime.timedelta(days=-dt.weekday(), weeks=1)
 
-        if dt.hour >= 17:
+        if dt.hour >= 17 or next_day:
             return dt + datetime.timedelta(days=1)
 
         return dt

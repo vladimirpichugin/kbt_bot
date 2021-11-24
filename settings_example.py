@@ -18,7 +18,9 @@ class Settings:
     ADMIN_IDS = []
     DEV_IDS = []
 
-    SCHEDULE_TIME = 60 * 60
+    SCHEDULE_TIME = 60 * 10
+    SCHEDULE_NOTIFY_TIME = '12:00'
+    SCHEDULE_NOTIFY_PAUSE_TIME = 60 * 5
 
     DOMAIN = 'https://cbcol.mskobr.ru'
     BLOG_PATH = '/elektronnye_servisy/blog/'
