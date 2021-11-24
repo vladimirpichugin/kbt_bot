@@ -103,7 +103,7 @@ class CollegeScheduleAbc:
             day = datetime.datetime(
                 day=article_day,
                 month=article_month_num,
-                year=datetime.datetime.now().year
+                year=datetime.datetime.today().year
             )
 
             parsed_articles.append(
