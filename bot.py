@@ -64,32 +64,40 @@ def schedule_polling():
 		g = CollegeScheduleGrabber(Settings.DOMAIN, Settings.BLOG_PATH)
 
 		while True:
-			articles = g.parse_articles()
+			try:
+				articles = g.parse_articles()
 
-			if not articles:
-				sleep(t / 2)
-				continue
-
-			articles = CollegeScheduleAbc.get_articles(articles)
-
-			for article in articles:
-				path = article.get('link')
-
-				date = article.get('date')
-				if not date:
+				if not articles:
+					sleep(t / 2)
 					continue
 
-				article_groups = g.parse_article(path)
-				for group in article_groups:
-					lessons = CollegeScheduleAbc.parse_lessons(group.get('lessons'))
-					group['lessons'] = lessons
+				articles = CollegeScheduleAbc.get_articles(articles)
 
-				article['data'] = article_groups
+				for article in articles:
+					path = article.get('link')
 
-				for group in article_groups:
-					logger.debug(group)
+					date = article.get('date')
+					if not date:
+						continue
 
-				storage.save_schedule(article)
+					if date < datetime.datetime.now():
+						logger.debug(f'{date} skipped')
+						continue
+
+					article_groups = g.parse_article(path)
+					for group in article_groups:
+						lessons = CollegeScheduleAbc.parse_lessons(group.get('lessons'))
+						group['lessons'] = lessons
+
+					article['data'] = article_groups
+
+					for group in article_groups:
+						logger.debug(group)
+
+					storage.save_schedule(article)
+			except Exception:
+				logger.debug(article)
+				logger.error('Schedule polling loop crashed', exc_info=True)
 
 			sleep(t)
 	except Exception:
