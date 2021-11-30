@@ -9,13 +9,18 @@ import bot
 
 
 if __name__ == "__main__":
+    console_thread = threading.Thread(target=bot.console)
+    console_thread.setName('ConsoleThread')
+    console_thread.daemon = True
+    console_thread.start()
+
     bot.logger.debug("Initializing schedule polling..")
     thread_schedule = threading.Thread(target=bot.schedule_polling)
     thread_schedule.setName('ScheduleThread')
     thread_schedule.daemon = True
     thread_schedule.start()
 
-    schedule.every().day.at(bot.Settings.SCHEDULE_NOTIFY_START_TIME).do(bot.run_threaded, name='NotifyThread', func=bot.schedule_notify)
+    schedule.every().day.at(bot.Settings.SCHEDULE_NOTIFY_START_TIME).do(bot.run_threaded, name='Notify', func=bot.schedule_notify)
 
     bot.logger.debug("Initializing bot polling..")
     thread_bot = threading.Thread(target=bot.bot_polling)
