@@ -6,6 +6,9 @@ import requests
 from bs4 import BeautifulSoup
 
 from .data import ScheduleArticle
+from .helpers import init_logger
+
+logger = init_logger()
 
 
 class CollegeScheduleGrabber:
@@ -24,12 +27,17 @@ class CollegeScheduleGrabber:
 
         articles = []
         for element in elements:
-            item = element.find("a")
+            try:
+                item = element.find("a")
 
-            text = item.text
-            href = item.get("href")
+                text = item.text
+                href = item.get("href")
 
-            articles.append((text, href))
+                articles.append((text, href))
+            except Exception:
+                logger.error(f'parse_articles: Исключение при обработке элемента из блога', exc_info=True)
+
+        logger.debug(f'parse_articles: {articles}')
 
         return articles
 
@@ -41,7 +49,10 @@ class CollegeScheduleGrabber:
 
         soup = BeautifulSoup(schedule_content.content, "html.parser")
 
-        tables = soup.find("div", class_="kris-post-item-txt").find("div").find_all("table")
+        # old
+        # tables = soup.find("div", class_="kris-post-item-txt").find("div").find_all("table")
+
+        tables = soup.find("div", class_="kris-post-item-txt").find_all("table")
 
         schedule = []
         for table_index, table in enumerate(tables):
@@ -87,28 +98,34 @@ class CollegeScheduleAbc:
 
     @staticmethod
     def get_articles(articles: list) -> list:
-        pattern = re.compile('(?P<d>([0-9]{2}))\s+(?P<m>([а-я]{3}))', flags=re.IGNORECASE)
+        pattern = re.compile('(?P<d>([0-9]{1,2}))\s+(?P<m>([а-я]{3}))', flags=re.IGNORECASE)
         months = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
 
         parsed_articles = []
         for article_title, article_link in articles:
-            article_date = re.search(pattern, article_title)
+            try:
+                article_date = re.search(pattern, article_title)
 
-            if not article_date:
-                continue
+                if not article_date:
+                    continue
 
-            article_day, article_month = int(article_date.group('d')), str(article_date.group('m'))
-            article_month_num = months.index(article_month)+1
+                article_day, article_month = int(article_date.group('d')), str(article_date.group('m'))
+                article_month_num = months.index(article_month)+1
 
-            day = datetime.datetime(
-                day=article_day,
-                month=article_month_num,
-                year=datetime.datetime.today().year
-            )
+                day = datetime.datetime(
+                    day=article_day,
+                    month=article_month_num,
+                    year=datetime.datetime.today().year
+                )
 
-            parsed_articles.append(
-                ScheduleArticle(title=article_title, link=article_link, date=day)
-            )
+                parsed_articles.append(
+                    ScheduleArticle(title=article_title, link=article_link, date=day)
+                )
+            except Exception:
+                logger.error(f'Исключение при обработке страницы блога (articles), проверь результат регулярки', exc_info=True)
+                logger.debug(article_title)
+                logger.debug(article_link)
+                logger.debug(article_date)
 
         return parsed_articles
 
