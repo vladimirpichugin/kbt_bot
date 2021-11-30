@@ -162,6 +162,24 @@ def schedule_notify():
 		break  # OK.
 
 
+def console():
+	while True:
+		try:
+			try:
+				cmd_args = input().split(' ')
+			except EOFError:
+				continue
+
+			cmd = cmd_args[0]
+
+			if cmd == "notify":
+				schedule_notify()
+			else:
+				logger.info("Command not found")
+		except Exception:
+			logger.error("Exception in console", exc_info=True)
+
+
 @bot.middleware_handler(update_types=['message'])
 def middleware_handler_message(bot_instance, message):
 	client = storage.get_client(message.from_user)
