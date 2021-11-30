@@ -45,6 +45,8 @@
     "contacts.social_networks.facebook.button.link": "https://www.facebook.com/kbt.moscow/?utm_source=telegram_bot&utm_medium=MosKBT_BOT",
     "contacts.social_networks.telegram.button": "Telegram-Канал",
     "contacts.social_networks.telegram.button.link": "https://t.me/kbt_moscow?utm_source=telegram_bot&utm_medium=MosKBT_BOT",
+    "contacts.social_networks.instagram.button": "Instagram",
+    "contacts.social_networks.instagram.button.link": "https://instagram.com/mcofbt?utm_source=telegram_bot&utm_medium=MosKBT_BOT",
 
     "faq.body": "Вопрос {qid} из {qmax}:\n<b>{q}</b>\n\n{a}",
     "faq.0.q": "Как подать заявление на бюджет?",

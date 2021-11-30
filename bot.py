@@ -405,6 +405,10 @@ def callback_query_contacts(call):
 		)
 
 		markup.row(
+			InlineKeyboardButton(L10n.get('contacts.social_networks.instagram.button'), url=L10n.get('contacts.social_networks.instagram.button.link'))
+		)
+
+		markup.row(
 			InlineKeyboardButton(L10n.get('contacts.social_networks.website.button'), url=L10n.get('contacts.social_networks.website.button.link'))
 		)
 
