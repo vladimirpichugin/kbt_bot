@@ -90,5 +90,18 @@
     "abiturient.4.button.link": "https://cbcol.mskobr.ru/abiturientam?utm_source=telegram_bot&utm_medium=MosKBT_BOT",
 
     "docs": "Выберите тип справки.",
-    "docs.student_proof": "Справка об обучении"
+    "docs.student_proof": "Справка об обучении",
+
+    "months.January": "января",
+    "months.February": "февраля",
+    "months.March": "марта",
+    "months.April": "апреля",
+    "months.May": "мая",
+    "months.June": "июня",
+    "months.July": "июля",
+    "months.August": "августа",
+    "months.September": "сентября",
+    "months.October": "октября",
+    "months.November": "ноября",
+    "months.December": "декабря"
 }

@@ -3,3 +3,4 @@ schedule
 requests
 pyTelegramBotAPI
 pymongo
+fpdf==1.7.2
