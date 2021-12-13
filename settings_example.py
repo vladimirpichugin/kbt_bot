@@ -13,6 +13,10 @@ class Settings:
 
     MONGO = ''
     MONGO_DATABASE = ''
+    COLLECTIONS = {
+        'clients': 'clients',
+        'schedule': 'schedule'
+    }
 
     SCHEDULE_TIME = 60 * 10  # Частота обращений к сайту за расписанием.
     SCHEDULE_NOTIFY_START_TIME = '10:00'  # Начнется проверка на наличие расписания для рассылки.

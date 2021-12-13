@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 # Author: Vladimir Pichugin <vladimir@pichug.in>
-import datetime
-
 import pymongo
 from telebot.types import User
 
@@ -13,11 +11,11 @@ logger = init_logger()
 
 
 class Storage:
-    def __init__(self, connect, database):
+    def __init__(self, connect, database, collections):
         self.mongo_client = pymongo.MongoClient(connect, authSource='admin')
         self.db = self.mongo_client.get_database(database)
-        self.clients = self.db.get_collection('clients')
-        self.schedule = self.db.get_collection('schedule')
+        self.clients = self.db.get_collection(collections.get('clients'))
+        self.schedule = self.db.get_collection(collections.get('schedule'))
 
     def get_client(self, user: User) -> Client:
         data = self.get_data(self.clients, user.id)
