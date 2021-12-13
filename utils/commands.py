@@ -24,7 +24,6 @@ def cmd_start():
         InlineKeyboardButton(L10n.get('start.button.schedule'), callback_data=json.dumps({'group_name': 'my_group'}))
     )
 
-    # todo: Добавить поддержку получения расписания по ФИО.
     #markup.row(
     #    InlineKeyboardButton(L10n.get('start.button.docs.student_proof'), callback_data=json.dumps({'docs': 'student_proof'}))
     #)
