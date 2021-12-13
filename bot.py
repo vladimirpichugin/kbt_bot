@@ -12,7 +12,7 @@ logger.info("Initializing..")
 
 try:
 	logger.info("Initializing storage..")
-	storage = Storage(Settings.MONGO, Settings.MONGO_DATABASE)
+	storage = Storage(Settings.MONGO, Settings.MONGO_DATABASE, Settings.COLLECTIONS)
 	logger.debug(f"MongoDB Server version: {storage.mongo_client.server_info()['version']}")
 except Exception as e:
 	logger.error('Storage crashed', exc_info=True)
@@ -30,9 +30,6 @@ telebot.logger.addHandler(get_logger_stream_handler())
 
 bot = telebot.TeleBot(Settings.BOT_TOKEN, parse_mode='html')
 
-bot.enable_save_next_step_handlers(delay=3)
-bot.load_next_step_handlers()
-
 
 def run_threaded(name, func):
 	job_thread = threading.Thread(target=func)
@@ -45,6 +42,8 @@ def bot_polling():
 		while True:
 			try:
 				logger.info("Starting bot polling.")
+				bot.enable_save_next_step_handlers(delay=3)
+				bot.load_next_step_handlers()
 				bot.polling(none_stop=True, interval=Settings.BOT_INTERVAL, timeout=Settings.BOT_TIMEOUT)
 			except Exception as ex:
 				logger.error(f"Bot polling failed, restarting in {Settings.BOT_TIMEOUT} sec.", exc_info=True)
@@ -74,25 +73,20 @@ def schedule_polling():
 				articles = CollegeScheduleAbc.get_articles(articles)
 
 				for article in articles:
-					path = article.get('link')
-
 					date = article.get('date')
 					if not date:
 						continue
 
-					if date < datetime.datetime.now():
-						logger.debug(f'{date} skipped')
+					path = article.get('link')
+
+					time_diff = datetime.datetime.today() - date
+					if time_diff.total_seconds() > 86400:
+						logger.debug(f'Schedule polling, {date} skipped')
 						continue
 
 					article_groups = g.parse_article(path)
-					for group in article_groups:
-						lessons = CollegeScheduleAbc.parse_lessons(group.get('lessons'))
-						group['lessons'] = lessons
 
 					article['data'] = article_groups
-
-					for group in article_groups:
-						logger.debug(group)
 
 					storage.save_schedule(article)
 			except Exception:
@@ -104,59 +98,65 @@ def schedule_polling():
 		logger.error('Schedule polling loop crashed', exc_info=True)
 
 
-def schedule_notify():
+def schedule_notify(teachers=False):
 	t = Settings.SCHEDULE_NOTIFY_PAUSE_TIME
 
 	while True:
 		today = datetime.datetime.today()
 
 		if today.isoweekday() >= 6:
-			logger.info(f'По выходным рассылка не отправляется.')
+			logger.info(f'Рассылка отменена, по выходным рассылка не отправляется.')
 			break  # Ok.
 
 		if today.hour >= 23:
-			logger.error(f'Рассылка отменена, вышли за границы времени.')
+			logger.error(f'Рассылка отменена, позже 11 часов рассылка не отправляется.')
 			break  # Fail.
 
 		day = CollegeScheduleAbc.get_weekday(next_day=True)
 
 		schedule = storage.get_schedule(date=day)
 		if not schedule:
-			logger.error(f'Рассылка отменена, нет расписания на {day}. Повторная попытка через {t / 60} минут.')
-			logger.debug(f'schedule: {schedule}')
+			logger.debug(f'storage.get_schedule: {schedule}')
+			logger.error(f'Рассылка перенесена, нет расписания на {day}.')
+			logger.info(f'Повторная попытка через {t / 60} мин.')
 			sleep(t)
 			continue  # Try again.
 
 		clients = storage.get_clients()
 		if not clients:
-			logger.error(f'Рассылка отменена, нет получателей. Повторная попытка через {t / 60} минут.')
+			logger.error(f'Рассылка перенесена, нет получателей.')
+			logger.info(f'Повторная попытка через {t / 60} мин.')
 			sleep(t)
 			continue  # Try again.
 
-		groups_clients = {}
-		for client in clients:
-			client_id = client.get_id()
-			schedule_groups = client.get('schedule_groups', [])
+		if teachers:
+			pass  # Todo
+		else:
+			students = {}
+			for client in clients:
+				client_id = client.get_id()
 
-			if not schedule_groups:
-				continue
+				schedule_groups = client.get('schedule_groups', [])
 
-			for group in schedule_groups:
-				if group not in groups_clients.keys():
-					groups_clients[group] = []
+				if not schedule_groups:
+					continue
 
-				if client_id not in groups_clients[group]:
-					groups_clients[group].append(client_id)
+				for group in schedule_groups:
+					if group not in students.keys():
+						students[group] = []
 
-		for group_name in groups_clients.keys():
-			text, markup = cmd_schedule_group(schedule, group_name, [group_name], day, include_back_button=False)
+					if client_id not in students[group]:
+						students[group].append(client_id)
 
-			group_clients_ids = groups_clients[group_name]
-			for client_id in group_clients_ids:
-				try:
-					bot.send_message(client_id, text, reply_markup=markup)
-				except Exception as e:
-					logger.error(f'Ошибка при отправке сообщения клиенту <{client_id}>', exc_info=True)
+			for group_name in students.keys():
+				text, markup = cmd_schedule_group(schedule, group_name, [group_name], day, include_back_button=False)
+
+				group_clients_ids = students[group_name]
+				for client_id in group_clients_ids:
+					try:
+						bot.send_message(client_id, text, reply_markup=markup)
+					except Exception as e:
+						logger.error(f'Ошибка при отправке сообщения клиенту <{client_id}>', exc_info=True)
 
 		logger.debug('Рассылка завершена.')
 		break  # OK.
@@ -185,6 +185,23 @@ def middleware_handler_message(bot_instance, message):
 	client = storage.get_client(message.from_user)
 	message.client = client
 
+	try:
+		args = message.text.split(' ')
+		cmd = args[0][1:] if args[0][0] == '/' else None
+
+		if cmd:
+			del args[0]
+
+		text_args = ' '.join(args)
+	except IndexError:
+		args = []
+		cmd = None
+		text_args = ''
+
+	message.args = args
+	message.text_args = text_args
+	message.cmd = cmd
+
 
 @bot.middleware_handler(update_types=['callback_query'])
 def middleware_handler_callback_query(bot_instance, call):
@@ -196,7 +213,7 @@ def middleware_handler_callback_query(bot_instance, call):
 	call.parsed_data = parsed_data
 
 	# Подгружаем клиента только для команды с расписанием.
-	if 'group_name' in parsed_data.keys() or 'faculty' in parsed_data.keys():
+	if 'group_name' in parsed_data or 'faculty' in parsed_data or 'teacher' in parsed_data:
 		client = storage.get_client(call.from_user)
 		call.client = client
 
@@ -239,12 +256,13 @@ def schedule_select_group(message):
 
 	schedule = storage.get_schedule(date=day)
 	if not schedule:
+		_, markup = cmd_schedule_groups()
 		text = L10n.get('schedule.not_found').format(
 			group_name=group_name,
 			date=day.strftime('%d.%m.%y')
 		)
 
-		bot.edit_message_text(text, message.chat.id, message.id, reply_markup=message.reply_markup)
+		bot.send_message(message.chat.id, text, reply_markup=markup)
 
 		return False
 
@@ -354,14 +372,96 @@ def callback_query_schedule_groups(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.parsed_data.get('teacher'))
-def callback_query_schedule_teachers(call):
-	bot.edit_message_text(
-		chat_id=call.message.chat.id,
-		message_id=call.message.id,
-		text='Отправьте фамилию и инициалы преподавателя, как указано в расписании.\nПример: Иванов И И',
-		reply_markup=None
+def callback_query_schedule_by_teacher(call):
+	client = call.client
+	teacher = call.parsed_data.get('teacher')
+	unsubscribe = call.parsed_data.get('unsubscribe', False)
+
+	if teacher == 'cancel':
+		bot.clear_step_handler(call.message)
+
+		bot.answer_callback_query(call.id, L10n.get("schedule.by_teacher.cancel.alert"), show_alert=True)
+		bot.delete_message(call.message.chat.id, call.message.id)
+
+		return False
+
+	if unsubscribe:
+		markup = InlineKeyboardMarkup()
+		markup.row(
+			InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True}))
+		)
+		bot.edit_message_text(L10n.get('schedule.by_teacher.unsubscribe'), call.message.chat.id, call.message.id, reply_markup=markup)
+
+		client['schedule_teachers'] = []
+		storage.save_client(call.from_user, client)
+
+		return False
+
+	if client.get('schedule_teachers'):
+		teacher = client.get('schedule_teachers', [])[0]
+
+		markup = InlineKeyboardMarkup()
+		markup.row(
+			InlineKeyboardButton(L10n.get('schedule.by_teacher.unsubscribe.button'), callback_data=json.dumps({'teacher': True, 'unsubscribe': True}))
+		)
+		markup.row(
+			InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True}))
+		)
+
+		bot.edit_message_text(L10n.get('schedule.by_teacher.status.subscribed').format(teacher=teacher), call.message.chat.id, call.message.id, reply_markup=markup)
+	else:
+		bot.register_next_step_handler(call.message, schedule_by_teacher_start, origin_call=call)
+
+		markup = InlineKeyboardMarkup()
+		markup.row(
+			InlineKeyboardButton(L10n.get('schedule.by_teacher.cancel.button'), callback_data=json.dumps({'teacher': 'cancel'}))
+		)
+
+		bot.edit_message_text(L10n.get('schedule.by_teacher'), call.message.chat.id, call.message.id, reply_markup=markup)
+
+
+def schedule_by_teacher_start(message, origin_call=None):
+	pattern = re.compile(r'(?P<last>[А-Яа-я\-]+)[ ]?(?P<first>[А-Яа-я]+)?(\.)?[ ]?((?P<middle>[А-Яа-я]+)(\.)?)', flags=re.IGNORECASE)
+
+	find_teacher = message.text_args
+
+	find_teacher = re.search(pattern, find_teacher)
+	if not find_teacher:
+		bot.register_next_step_handler(message, schedule_by_teacher_start)
+		bot.delete_message(message.chat.id, message.id)
+
+		if origin_call:
+			bot.answer_callback_query(origin_call.id, L10n.get('schedule.by_teacher.subscribe.incorrect_fio.alert'), show_alert=True)
+		else:
+			bot.send_message(message.chat.id, L10n.get('schedule.by_teacher.subscribe.incorrect_fio'))
+
+		return False
+
+	n_last = find_teacher.group('last')
+	n_first = find_teacher.group('first')
+	n_middle = find_teacher.group('middle')
+
+	teacher = []
+	if type(n_last) == str:
+		teacher.append(n_last.lower().title())
+	if type(n_first) == str:
+		teacher.append(n_first[0].upper())
+	if type(n_middle) == str:
+		teacher.append(n_middle[0].upper())
+
+	teacher = ' '.join(teacher)
+
+	text = L10n.get('schedule.by_teacher.subscribe').format(teacher=teacher)
+	markup = InlineKeyboardMarkup()
+	markup.row(
+		InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True}))
 	)
-	#bot.register_next_step_handler(call.message, callback_text_schedule_select_teacher)
+
+	client = message.client
+	client['schedule_teachers'] = [teacher]
+	storage.save_client(message.from_user, client)
+
+	bot.send_message(message.chat.id, text, reply_markup=markup)
 
 
 @bot.message_handler(regexp='справка')

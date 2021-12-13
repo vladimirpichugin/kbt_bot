@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 # Author: Vladimir Pichugin <vladimir@pichug.in>
 import json
-import re
 
-from telebot.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from .helpers import init_logger
 from .json import Json
@@ -181,6 +180,9 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
             break
 
         for l in lessons:
+            lesson_text = L10n.get('schedule.body.lesson')
+
+            l_id = l.get('id')
             name = l.get('name')
             teacher = l.get('teacher', {}).get('full_name')
             info = l.get('info')
@@ -196,8 +198,12 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
             if info:
                 lesson.append(info)
 
-            lessons_text.append('\n'.join(lesson))
-        lessons_text = '\n\n'.join(['<b>№ {}.</b> {}'.format(num + 1, value) for num, value in enumerate(lessons_text)])
+            lesson = '\n'.join(lesson)
+            lesson_text = lesson_text.format(l_id, lesson)
+
+            lessons_text.append(lesson_text)
+
+        lessons_text = '\n\n'.join(lessons_text)
 
         break
 
@@ -230,7 +236,14 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
                                  callback_data=json.dumps({'group_name': group_name, 'subscribe': True}))
         )
 
+    markup = _add_schedule_buttons(markup, link, include_menu_button, include_back_button)
+
+    return text, markup
+
+
+def _add_schedule_buttons(markup, link, include_menu_button, include_back_button):
     if link:
+        link += '?utm_source=telegram_bot&utm_medium=MosKBT_BOT'
         markup.row(
             InlineKeyboardButton(L10n.get('schedule.open_site.button'), url=link)
         )
@@ -251,4 +264,4 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
                 InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
             )
 
-    return text, markup
+    return markup
