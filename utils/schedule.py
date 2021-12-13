@@ -42,15 +42,12 @@ class CollegeScheduleGrabber:
         return articles
 
     def parse_article(self, article_path: str) -> list:
-        pattern = re.compile(r'^(?P<c>([А-Я]{1,2}))(\s)?(?P<n>[0-9]{2})([\s\-])?(?P<y>[0-9]{2})\s(?P<r>.+)?', flags=re.IGNORECASE)
+        pattern = re.compile(r'^(?P<f>([А-Я]{1,2}))(\s)?(?P<n>[0-9]{2})([\s\-])?(?P<y>[0-9]{2})\s(?P<r>.+)?', flags=re.IGNORECASE)
         link = self.domain + article_path
 
         schedule_content = requests.get(link)
 
         soup = BeautifulSoup(schedule_content.content, "html.parser")
-
-        # old
-        # tables = soup.find("div", class_="kris-post-item-txt").find("div").find_all("table")
 
         tables = soup.find("div", class_="kris-post-item-txt").find_all("table")
 
@@ -72,13 +69,27 @@ class CollegeScheduleGrabber:
                             for i in range(1, 5):
                                 lessons.append(g_s_c[r_i + i].find_all("td")[c_r_i].text.replace(u'\xa0', ''))
 
-                            group_name = r.group('c') + r.group('n') + '-' + r.group('y')
-                            room = r.group('r')
+                            lessons = CollegeScheduleAbc.parse_lessons(lessons)
+
+                            room = r.group('r') or ''
+                            room = room.lower().replace('\n', '').strip()
+
+                            if room in ['ауд.']:
+                                room = None
+
+                            info = {
+                                'room': room,
+                                'group': {
+                                    'name': r.group('f') + r.group('n') + '-' + r.group('y'),
+                                    'f': r.group('f'),
+                                    'n': r.group('n'),
+                                    'y': r.group('y')
+                                }
+                            }
 
                             schedule.append({
-                                'group': group_name,
-                                'room': room,
-                                'lessons': lessons,
+                                'info': info,
+                                'lessons': lessons
                             })
 
         return schedule
@@ -86,15 +97,37 @@ class CollegeScheduleGrabber:
 
 class CollegeScheduleAbc:
     @staticmethod
-    def parse_lessons(lessons: list):
-        lessons_f = []
+    def parse_lessons(lessons_raw: list):
+        pattern = re.compile(r'(?P<name>[А-Яа-я\-\. ]+)\s(?P<teacher>(?P<last_name>[А-Яа-я\-]+)[ ]?(?P<first_name>[А-Яа-я]+)?(\.)?[ ]?((?P<middle_name>[А-Яа-я]+)(\.)?))\s(?P<info>[А-Яа-я0-9\-\.\s]+)',
+                             flags=re.IGNORECASE)
 
-        for lesson in lessons:
-            lessons_f.append([_ for _ in lesson.split('\n') if _ and _ not in ['\xa0']])
+        lessons = []
+        for lesson_raw in lessons_raw:
+            r = re.search(pattern, lesson_raw)
 
-        lessons_f = list(map(tuple, lessons_f))
+            if not r:
+                continue
 
-        return lessons_f
+            info = r.group('info') or ''
+            info = info.lower().replace('\n', '').strip()
+
+            if info in ['ауд.']:
+                info = None
+
+            lesson = {
+                "name": r.group('name'),
+                "teacher": {
+                    "full_name": r.group('teacher'),
+                    "last_name": r.group('last_name'),
+                    "first_name": r.group('first_name'),
+                    "middle_name": r.group('middle_name')
+                },
+                "info": info
+            }
+
+            lessons.append(lesson)
+
+        return lessons
 
     @staticmethod
     def get_articles(articles: list) -> list:
@@ -136,18 +169,6 @@ class CollegeScheduleAbc:
                 return article
 
         return None
-
-    @staticmethod
-    def get_weekday(next_day=False):
-        dt = datetime.datetime.today()
-
-        if dt.isoweekday() >= 6 or (dt.isoweekday() == 5 and dt.hour >= 17):
-            return dt + datetime.timedelta(days=-dt.weekday(), weeks=1)
-
-        if dt.hour >= 17 or next_day:
-            return dt + datetime.timedelta(days=1)
-
-        return dt
 
     @staticmethod
     def get_weekday(next_day=False):

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # Author: Vladimir Pichugin <vladimir@pichug.in>
 import json
+import re
+
 from telebot.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
 
 from .helpers import init_logger
@@ -70,10 +72,10 @@ def cmd_abiturient():
 
 
 def cmd_schedule_groups(faculty=None, include_teacher=False, include_menu=True):
+    text = "Выберите группу."
     markup = InlineKeyboardMarkup()
 
     if faculty:
-        text = "Выберите группу."
         groups = Settings.GROUPS.get(faculty).get('GROUPS')
 
         for _ in range(0, len(groups), 4):
@@ -87,14 +89,11 @@ def cmd_schedule_groups(faculty=None, include_teacher=False, include_menu=True):
 
         return text, markup
 
-    text = "Выберите группу."
-
     for _ in range(0, len(Settings.GROUPS), 4):
         buttons = [InlineKeyboardButton(faculty, callback_data=json.dumps({'faculty': faculty})) for faculty in
                    list(Settings.GROUPS.keys())[_:_ + 4]]
         markup.row(*buttons)
 
-    include_teacher = False
     if include_teacher:
         markup.row(InlineKeyboardButton('По преподавателю', callback_data=json.dumps({'teacher': True})))
 
@@ -166,27 +165,36 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
 
     lessons_text = []
     link = Settings.DOMAIN + schedule.get('link') if schedule.get('link') else None
-    groups = schedule.get('data')
+    schedule_groups = schedule.get('data')
 
-    for group in groups:
-        if group.get('group') != group_name:
+    for schedule_group in schedule_groups:
+        info = schedule_group.get('info', {})
+        lessons = schedule_group.get('lessons', [])
+
+        schedule_group_name = info.get('group').get('name')
+        room = info.get('room')
+
+        if schedule_group_name != group_name:
             continue
-
-        room = group.get('room')
-        if room in ['ауд.', 'ауд']:  # todo: Заменить на регулярку
-            room = ''
-
-        lessons = group.get('lessons')
 
         if not any(lessons):
             break
 
-        for lesson in lessons:
-            if not lesson:
-                continue
+        for l in lessons:
+            name = l.get('name')
+            teacher = l.get('teacher', {}).get('full_name')
+            info = l.get('info')
 
-            if lesson[-1].lower() in ['ауд.', 'ауд']:  # todo: Заменить на регулярку
-                del lesson[-1]
+            if info:
+                info = info.title()
+
+            lesson = [name]
+
+            if teacher:
+                lesson.append(teacher)
+
+            if info:
+                lesson.append(info)
 
             lessons_text.append('\n'.join(lesson))
         lessons_text = '\n\n'.join(['<b>№ {}.</b> {}'.format(num + 1, value) for num, value in enumerate(lessons_text)])
@@ -227,14 +235,20 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
             InlineKeyboardButton(L10n.get('schedule.open_site.button'), url=link)
         )
 
-    if include_back_button:
+    if include_back_button and include_menu_button:
         markup.row(
-            InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True}))
-        )
-
-    if include_menu_button:
-        markup.row(
+            InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True})),
             InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
         )
+    else:
+        if include_back_button:
+            markup.row(
+                InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True}))
+            )
+
+        if include_menu_button:
+            markup.row(
+                InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+            )
 
     return text, markup
