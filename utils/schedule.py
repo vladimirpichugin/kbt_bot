@@ -102,7 +102,7 @@ class CollegeScheduleAbc:
                              flags=re.IGNORECASE)
 
         lessons = []
-        for lesson_raw in lessons_raw:
+        for lesson_id, lesson_raw in enumerate(lessons_raw):
             r = re.search(pattern, lesson_raw)
 
             if not r:
@@ -115,6 +115,7 @@ class CollegeScheduleAbc:
                 info = None
 
             lesson = {
+                "id": lesson_id+1,
                 "name": r.group('name'),
                 "teacher": {
                     "full_name": r.group('teacher'),
