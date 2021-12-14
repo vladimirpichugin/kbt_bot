@@ -97,13 +97,13 @@ def schedule_polling():
 	except Exception:
 		logger.error('Schedule polling loop crashed', exc_info=True)
 
-
-def schedule_notify(teachers=False):
+def schedule_notify(teachers=False, next_day=True):
 	t = Settings.SCHEDULE_NOTIFY_PAUSE_TIME
 
 	while True:
 		today = datetime.datetime.today()
 
+		# todo: А если в пятницу расписание не опубликовали?
 		if today.isoweekday() >= 6:
 			logger.info(f'Рассылка отменена, по выходным рассылка не отправляется.')
 			break  # Ok.
@@ -112,7 +112,7 @@ def schedule_notify(teachers=False):
 			logger.error(f'Рассылка отменена, позже 11 часов рассылка не отправляется.')
 			break  # Fail.
 
-		day = CollegeScheduleAbc.get_weekday(next_day=True)
+		day = CollegeScheduleAbc.get_weekday(next_day=next_day)
 
 		schedule = storage.get_schedule(date=day)
 		if not schedule:
@@ -130,7 +130,32 @@ def schedule_notify(teachers=False):
 			continue  # Try again.
 
 		if teachers:
-			pass  # Todo
+			teachers = {}
+			for client in clients:
+				client_id = client.get_id()
+
+				schedule_teachers = client.get('schedule_teachers', [])
+
+				if not schedule_teachers:
+					continue
+
+				for teacher in schedule_teachers:
+					if teacher not in teachers:
+						teachers[teacher] = []
+
+					if teacher not in teachers[teacher]:
+						teachers[teacher].append(client_id)
+
+				for teacher in teachers.keys():
+					text, markup = cmd_schedule_teacher(schedule, teacher, [teacher], day, include_back_button=False)
+
+					teacher_clients_ids = teachers[teacher]
+					for client_id in teacher_clients_ids:
+						try:
+							bot.send_message(client_id, text, reply_markup=markup)
+						except Exception as e:
+							logger.error(f'Ошибка при отправке сообщения клиенту <{client_id}>', exc_info=True)
+
 		else:
 			students = {}
 			for client in clients:
@@ -162,6 +187,10 @@ def schedule_notify(teachers=False):
 		break  # OK.
 
 
+def schedule_notify_teachers(next_day=True):
+	schedule_notify(teachers=True, next_day=next_day)
+
+
 def console():
 	while True:
 		try:
@@ -174,6 +203,8 @@ def console():
 
 			if cmd == "notify":
 				schedule_notify()
+			elif cmd == "notifyteachers":
+				schedule_notify_teachers(next_day=False)
 			else:
 				logger.info("Command not found")
 		except Exception:

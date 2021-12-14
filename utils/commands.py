@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Author: Vladimir Pichugin <vladimir@pichug.in>
 import json
+import re
 
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -233,6 +234,78 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
         markup.row(
             InlineKeyboardButton(L10n.get('schedule.subscribe.button').format(group_name=group_name),
                                  callback_data=json.dumps({'group_name': group_name, 'subscribe': True}))
+        )
+
+    markup = _add_schedule_buttons(markup, link, include_menu_button, include_back_button)
+
+    return text, markup
+
+
+def cmd_schedule_teacher(schedule, teacher, subscribe_schedule_teachers, day, include_back_button=True, include_menu_button=False):
+    find_teacher = teacher.split(' ')[0]
+    day_fmt = day.strftime('%d.%m.%y')
+
+    lessons_text = []
+    link = Settings.DOMAIN + schedule.get('link') if schedule.get('link') else None
+    schedule_groups = schedule.get('data')
+
+    for schedule_group in schedule_groups:
+        info = schedule_group.get('info', {})
+        lessons = schedule_group.get('lessons', [])
+
+        schedule_group_name = info.get('group').get('name')
+        room = info.get('room')
+
+        if not any(lessons):
+            continue
+
+        for l in lessons:
+            lesson_text = L10n.get('schedule.by_teacher.body.lesson')
+
+            l_id = l.get('id')
+            name = l.get('name')
+            info = l.get('info')
+            raw = l.get('raw')
+
+            if not re.search(find_teacher, raw):
+                continue
+
+            if info:
+                info = info.title()
+
+            lesson = []
+
+            if info:
+                lesson.append(info)
+            elif room:
+                lesson.append(room)
+
+            lesson = '\n'.join(lesson)
+            lesson_text = lesson_text.format(l_id, schedule_group_name, name, lesson)
+
+            lessons_text.append(lesson_text)
+
+    lessons_text = '\n\n'.join(lessons_text)
+
+    if lessons_text:
+        text = L10n.get('schedule.by_teacher.body').format(
+            date=day_fmt,
+            teacher=teacher,
+            lessons=lessons_text
+        )
+    else:
+        text = L10n.get('schedule.by_teacher.not_found').format(
+            teacher=teacher,
+            date=day_fmt
+        )
+
+    markup = InlineKeyboardMarkup()
+
+    if teacher in subscribe_schedule_teachers:
+        text += '\n\n' + L10n.get('schedule.by_teacher.status.subscribed').format(teacher=teacher)
+        markup.row(
+            InlineKeyboardButton(L10n.get('schedule.by_teacher.unsubscribe.button').format(teacher=teacher),
+                                 callback_data=json.dumps({'teacher': True, 'unsubscribe': True}))
         )
 
     markup = _add_schedule_buttons(markup, link, include_menu_button, include_back_button)

@@ -111,7 +111,7 @@ class CollegeScheduleAbc:
             info = r.group('info') or ''
             info = info.lower().replace('\n', '').strip()
 
-            if info in ['ауд.']:
+            if 'ауд' in info:
                 info = None
 
             lesson = {
@@ -123,7 +123,8 @@ class CollegeScheduleAbc:
                     "first_name": r.group('first_name'),
                     "middle_name": r.group('middle_name')
                 },
-                "info": info
+                "info": info,
+                "raw": lesson_raw
             }
 
             lessons.append(lesson)

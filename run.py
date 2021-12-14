@@ -20,7 +20,8 @@ if __name__ == "__main__":
     thread_schedule.daemon = True
     thread_schedule.start()
 
-    schedule.every().day.at(bot.Settings.SCHEDULE_NOTIFY_START_TIME).do(bot.run_threaded, name='Notify', func=bot.schedule_notify)
+    schedule.every().day.at(bot.Settings.SCHEDULE_NOTIFY_START_TIME).do(bot.run_threaded, name='NotifyStudents', func=bot.schedule_notify)
+    schedule.every().day.at(bot.Settings.SCHEDULE_NOTIFY_START_TIME).do(bot.run_threaded, name='NotifyTeachers', func=bot.schedule_notify_teachers)
 
     bot.logger.debug("Initializing bot polling..")
     thread_bot = threading.Thread(target=bot.bot_polling)
