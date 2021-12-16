@@ -97,7 +97,8 @@ def schedule_polling():
 	except Exception:
 		logger.error('Schedule polling loop crashed', exc_info=True)
 
-def schedule_notify(teachers=False, next_day=True):
+
+def schedule_notify(notify_teachers=False, next_day=True):
 	t = Settings.SCHEDULE_NOTIFY_PAUSE_TIME
 
 	while True:
@@ -129,66 +130,47 @@ def schedule_notify(teachers=False, next_day=True):
 			sleep(t)
 			continue  # Try again.
 
-		if teachers:
-			teachers = {}
-			for client in clients:
-				client_id = client.get_id()
+		notify_clients = {}
 
-				schedule_teachers = client.get('schedule_teachers', [])
+		subscribe_key = 'schedule_teachers' if notify_teachers else 'schedule_groups'
+		for client in clients:
+			client_id = client.get_id()
 
-				if not schedule_teachers:
-					continue
+			subscribe_values = client.get(subscribe_key, [])
 
-				for teacher in schedule_teachers:
-					if teacher not in teachers:
-						teachers[teacher] = []
+			if not subscribe_values:
+				continue
 
-					if teacher not in teachers[teacher]:
-						teachers[teacher].append(client_id)
+			for subscribe_value in subscribe_values:
+				if subscribe_value not in notify_clients:
+					notify_clients[subscribe_value] = []
 
-				for teacher in teachers.keys():
-					text, markup = cmd_schedule_teacher(schedule, teacher, [teacher], day, include_back_button=False)
+				if subscribe_value not in notify_clients[subscribe_value]:
+					notify_clients[subscribe_value].append(client_id)
 
-					teacher_clients_ids = teachers[teacher]
-					for client_id in teacher_clients_ids:
-						try:
-							bot.send_message(client_id, text, reply_markup=markup)
-						except Exception as e:
-							logger.error(f'Ошибка при отправке сообщения клиенту <{client_id}>', exc_info=True)
+		for key in notify_clients.keys():
+			if notify_teachers:
+				text, markup = cmd_schedule_teacher(schedule, key, [key], day, include_back_button=False)
+			else:
+				text, markup = cmd_schedule_group(schedule, key, [key], day, include_back_button=False)
 
-		else:
-			students = {}
-			for client in clients:
-				client_id = client.get_id()
-
-				schedule_groups = client.get('schedule_groups', [])
-
-				if not schedule_groups:
-					continue
-
-				for group in schedule_groups:
-					if group not in students.keys():
-						students[group] = []
-
-					if client_id not in students[group]:
-						students[group].append(client_id)
-
-			for group_name in students.keys():
-				text, markup = cmd_schedule_group(schedule, group_name, [group_name], day, include_back_button=False)
-
-				group_clients_ids = students[group_name]
-				for client_id in group_clients_ids:
-					try:
-						bot.send_message(client_id, text, reply_markup=markup)
-					except Exception as e:
-						logger.error(f'Ошибка при отправке сообщения клиенту <{client_id}>', exc_info=True)
+			notify_clients_ids = notify_clients.get(key, [])
+			for client_id in notify_clients_ids:
+				try:
+					bot.send_message(client_id, text, reply_markup=markup)
+				except Exception:
+					logger.error(f'Ошибка при отправке сообщения клиенту <{client_id}>', exc_info=True)
 
 		logger.debug('Рассылка завершена.')
 		break  # OK.
 
 
+def schedule_notify_students(next_day=True):
+	schedule_notify(notify_teachers=False, next_day=next_day)
+
+
 def schedule_notify_teachers(next_day=True):
-	schedule_notify(teachers=True, next_day=next_day)
+	schedule_notify(notify_teachers=True, next_day=next_day)
 
 
 def console():
@@ -200,11 +182,23 @@ def console():
 				continue
 
 			cmd = cmd_args[0]
+			if not cmd:
+				continue
 
 			if cmd == "notify":
-				schedule_notify()
-			elif cmd == "notifyteachers":
-				schedule_notify_teachers(next_day=False)
+				if len(cmd_args) != 3:
+					logger.info("notify <type: students|teachers> <next day: true|false>")
+					continue
+
+				notify_type = cmd_args[1]
+				if notify_type not in ["students", "teachers"]:
+					logger.error(f"Unknown arg {notify_type} Allowed: students, teachers")
+					continue
+
+				notify_teachers = True if cmd_args[1] == "teachers" else False
+				next_day = True if cmd_args[2] else False
+
+				schedule_notify(notify_teachers=notify_teachers, next_day=next_day)
 			else:
 				logger.info("Command not found")
 		except Exception:
@@ -244,7 +238,7 @@ def middleware_handler_callback_query(bot_instance, call):
 	call.parsed_data = parsed_data
 
 	# Подгружаем клиента только для команды с расписанием.
-	if 'group_name' in parsed_data or 'faculty' in parsed_data or 'teacher' in parsed_data:
+	if 'group_name' in parsed_data or 'faculty' in parsed_data or 'teacher' in parsed_data or 'schedule' in parsed_data:
 		client = storage.get_client(call.from_user)
 		call.client = client
 
@@ -264,7 +258,7 @@ def menu(message):
 
 
 @bot.callback_query_handler(func=lambda call: call.parsed_data.get('menu'))
-def callback_query_schedule_groups(call):
+def callback_query_menu(call):
 	text, markup = cmd_start()
 	text = L10n.get('start.menu')
 	bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
@@ -272,69 +266,86 @@ def callback_query_schedule_groups(call):
 
 @bot.message_handler(regexp='расписание')
 @bot.message_handler(commands=['raspisanie', 'расписание'])
-def schedule_select_group(message):
+def schedule(message):
 	client = message.client
-	subscribe_schedule_groups = client.get('schedule_groups', [])
+	subscribe_groups = client.get('schedule_groups', [])
+	subscribe_teachers = client.get('schedule_teachers', [])
 
-	if not subscribe_schedule_groups:
-		text, markup = cmd_schedule_groups(include_teacher=True)
+	if not subscribe_groups and not subscribe_teachers:
+		text, markup = cmd_schedule(include_teacher=True)
 		bot.send_message(message.chat.id, text, reply_markup=markup)
 		return False
 
-	group_name = subscribe_schedule_groups[0]
+	group_name = subscribe_groups[0] if subscribe_groups else None
+	teacher = subscribe_teachers[0] if subscribe_teachers else None
 
 	day = CollegeScheduleAbc.get_weekday()
-
 	schedule = storage.get_schedule(date=day)
 	if not schedule:
-		_, markup = cmd_schedule_groups()
-		text = L10n.get('schedule.not_found').format(
-			group_name=group_name,
-			date=day.strftime('%d.%m.%y')
+		text = L10n.get('schedule.not_found').format(date=day.strftime('%d.%m.%y'))
+
+		markup = InlineKeyboardMarkup()
+		markup.row(
+			InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
 		)
 
 		bot.send_message(message.chat.id, text, reply_markup=markup)
 
 		return False
 
-	text, markup = cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, include_menu_button=True)
+	text = ''
+	link = Settings.DOMAIN + schedule.get('link') if schedule.get('link') else None
+
+	markup = InlineKeyboardMarkup()
+	if group_name:
+		text_group, button = cmd_schedule_group(schedule, group_name, subscribe_groups, day, return_unsubscribe_button=True)
+		text += text_group
+		markup.row(button)
+
+	if teacher:
+		text_teacher, button = cmd_schedule_teacher(schedule, teacher, subscribe_teachers, day, include_head=(True if not group_name else False), return_unsubscribe_button=True)
+		if text:
+			text += '\n\n'
+		text += text_teacher
+		markup.row(button)
+
+	markup = add_schedule_buttons(markup, link, True, True)
 
 	bot.send_message(message.chat.id, text, reply_markup=markup)
 
 
-@bot.callback_query_handler(func=lambda call: call.parsed_data.get('faculty') or call.parsed_data.get('group_name'))
-def callback_query_schedule_groups(call):
-	faculty = call.parsed_data.get('faculty', None)
-	group_name = call.parsed_data.get('group_name', None)
+@bot.callback_query_handler(func=lambda call: call.parsed_data.get('faculty') or call.parsed_data.get('group_name') or call.parsed_data.get('schedule'))
+def callback_query_schedule(call):
+	show_subscribe = True if (call.parsed_data.get('group_name') is True or call.parsed_data.get('schedule')) else False
+	faculty = call.parsed_data.get('faculty')
+	group_name = call.parsed_data.get('group_name')
+	teacher = None
 	subscribe = call.parsed_data.get('subscribe', False)
 	unsubscribe = call.parsed_data.get('unsubscribe', False)
 
 	client = call.client
-	subscribe_schedule_groups = client.get('schedule_groups', [])
+	subscribe_groups = client.get('schedule_groups', [])
+	subscribe_teachers = client.get('schedule_teachers', [])
 
-	if group_name == 'my_group':
-		if subscribe_schedule_groups:
-			group_name = subscribe_schedule_groups[0]
-			faculty = None
-		else:
-			group_name = None
-			faculty = True
+	if show_subscribe:
+		group_name = subscribe_groups[0] if subscribe_groups else None
+		faculty = None if (subscribe_groups and subscribe_teachers) else True
+		teacher = subscribe_teachers[0] if subscribe_teachers else None
 
-	if not group_name and (not faculty or faculty == True):
-		text, markup = cmd_schedule_groups(include_teacher=True)
+	if not group_name and (not faculty or faculty is True) and not teacher:
+		text, markup = cmd_schedule(include_teacher=True)
 		bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
 		return False
 
 	if faculty and type(faculty) == str and faculty not in Settings.GROUPS:
 		bot.answer_callback_query(
-			callback_query_id=call.id,
 			text=L10n.get("schedule.faculty_not_found").format(faculty=faculty),
-			show_alert=True
+			callback_query_id=call.id, show_alert=True
 		)
 		return False
 
-	if not group_name:
-		text, markup = cmd_schedule_groups(faculty=faculty)
+	if not group_name and not teacher:
+		text, markup = cmd_schedule(faculty=faculty)
 		bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
 		return False
 
@@ -385,19 +396,36 @@ def callback_query_schedule_groups(call):
 		return False
 
 	day = CollegeScheduleAbc.get_weekday()
-
 	schedule = storage.get_schedule(date=day)
 	if not schedule:
-		text = L10n.get('schedule.not_found').format(
-			group_name=group_name,
-			date=day.strftime('%d.%m.%y')
+		text = L10n.get('schedule.not_found').format(date=day.strftime('%d.%m.%y'))
+
+		markup = InlineKeyboardMarkup()
+		markup.row(
+			InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
 		)
 
-		bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=call.message.reply_markup)
+		bot.send_message(call.message.chat.id, text, reply_markup=markup)
 
 		return False
 
-	text, markup = cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day)
+	text = ''
+	link = Settings.DOMAIN + schedule.get('link') if schedule.get('link') else None
+
+	markup = InlineKeyboardMarkup()
+	if group_name:
+		text_group, button = cmd_schedule_group(schedule, group_name, subscribe_groups, day, return_unsubscribe_button=True)
+		text += text_group
+		markup.row(button)
+
+	if teacher:
+		text_teacher, button = cmd_schedule_teacher(schedule, teacher, subscribe_teachers, day, include_head=(True if not group_name else False), return_unsubscribe_button=True)
+		if text:
+			text += '\n\n'
+		text += text_teacher
+		markup.row(button)
+
+	markup = add_schedule_buttons(markup, link, True, True)
 
 	bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
 
@@ -410,14 +438,22 @@ def callback_query_schedule_by_teacher(call):
 
 	if teacher == 'cancel':
 		bot.clear_step_handler(call.message)
-
-		bot.answer_callback_query(call.id, L10n.get("schedule.by_teacher.cancel.alert"), show_alert=True)
-		bot.delete_message(call.message.chat.id, call.message.id)
+		markup = InlineKeyboardMarkup()
+		markup.row(
+			InlineKeyboardButton(L10n.get('schedule.by_teacher.button'), callback_data=json.dumps({'teacher': True}))
+		)
+		markup.row(
+			InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True}))
+		)
+		bot.edit_message_text(L10n.get('schedule.by_teacher.cancel'), call.message.chat.id, call.message.id, reply_markup=markup)
 
 		return False
 
 	if unsubscribe:
 		markup = InlineKeyboardMarkup()
+		markup.row(
+			InlineKeyboardButton(L10n.get('schedule.by_teacher.button'), callback_data=json.dumps({'teacher': True}))
+		)
 		markup.row(
 			InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True}))
 		)
@@ -431,15 +467,25 @@ def callback_query_schedule_by_teacher(call):
 	if client.get('schedule_teachers'):
 		teacher = client.get('schedule_teachers', [])[0]
 
+		day = CollegeScheduleAbc.get_weekday(next_day=False)
+		schedule = storage.get_schedule(date=day)
+
+		text, _ = cmd_schedule_teacher(schedule, teacher, [], day, include_back_button=False)
+		text += '\n\n' + L10n.get('schedule.by_teacher.status.subscribed').format(teacher=teacher)
+
 		markup = InlineKeyboardMarkup()
+
 		markup.row(
-			InlineKeyboardButton(L10n.get('schedule.by_teacher.unsubscribe.button'), callback_data=json.dumps({'teacher': True, 'unsubscribe': True}))
+			InlineKeyboardButton(
+				L10n.get('schedule.by_teacher.unsubscribe.button').format(teacher=teacher),
+				callback_data=json.dumps({'teacher': True, 'unsubscribe': True})
+			)
 		)
 		markup.row(
 			InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True}))
 		)
 
-		bot.edit_message_text(L10n.get('schedule.by_teacher.status.subscribed').format(teacher=teacher), call.message.chat.id, call.message.id, reply_markup=markup)
+		bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
 	else:
 		bot.register_next_step_handler(call.message, schedule_by_teacher_start, origin_call=call)
 
@@ -452,7 +498,7 @@ def callback_query_schedule_by_teacher(call):
 
 
 def schedule_by_teacher_start(message, origin_call=None):
-	pattern = re.compile(r'(?P<last>[А-Яа-я\-]+)[ ]?(?P<first>[А-Яа-я]+)?(\.)?[ ]?((?P<middle>[А-Яа-я]+)(\.)?)', flags=re.IGNORECASE)
+	pattern = re.compile(r'(?P<l>[А-Яа-я\-]+)[ ]?(?P<f>[А-Яа-я]+)?(\.)?[ ]?((?P<m>[А-Яа-я]+)(\.)?)', flags=re.IGNORECASE)
 
 	find_teacher = message.text_args
 
@@ -468,9 +514,9 @@ def schedule_by_teacher_start(message, origin_call=None):
 
 		return False
 
-	n_last = find_teacher.group('last')
-	n_first = find_teacher.group('first')
-	n_middle = find_teacher.group('middle')
+	n_last = find_teacher.group('l')
+	n_first = find_teacher.group('f')
+	n_middle = find_teacher.group('m')
 
 	teacher = []
 	if type(n_last) == str:
@@ -482,17 +528,29 @@ def schedule_by_teacher_start(message, origin_call=None):
 
 	teacher = ' '.join(teacher)
 
-	text = L10n.get('schedule.by_teacher.subscribe').format(teacher=teacher)
-	markup = InlineKeyboardMarkup()
-	markup.row(
-		InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True}))
-	)
-
 	client = message.client
 	client['schedule_teachers'] = [teacher]
 	storage.save_client(message.from_user, client)
 
+	day = CollegeScheduleAbc.get_weekday(next_day=False)
+	schedule = storage.get_schedule(date=day)
+
+	text, _ = cmd_schedule_teacher(schedule, teacher, [], day, include_back_button=False)
+	text += '\n\n' + L10n.get('schedule.by_teacher.subscribe').format(teacher=teacher)
+
+	markup = InlineKeyboardMarkup()
+	markup.row(
+		InlineKeyboardButton(
+			L10n.get('schedule.by_teacher.unsubscribe.button').format(teacher=teacher),
+			callback_data=json.dumps({'teacher': True, 'unsubscribe': True})
+		)
+	)
+	markup.row(
+		InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True}))
+	)
+
 	bot.send_message(message.chat.id, text, reply_markup=markup)
+	bot.delete_message(message.chat.id, message.id)
 
 
 @bot.message_handler(regexp='справка')
@@ -672,11 +730,12 @@ def callback_query_contacts(call):
 
 
 @bot.callback_query_handler(func=lambda call: True)
-def callback_debug(call):
-	logger.debug('Не смог обработать событие с клавиатуры, очищаю это сообщение.')
+def callback_query(call):
+	logger.debug('Событие с кнопки не обработано. Сообщение с клавиатурой удалено.')
 
 	logger.debug(f'Call: {call}')
 	logger.debug(f'Call data: {call.data}')
 	logger.debug(f'Call parsed data: {call.parsed_data}')
+	logger.debug(f'Chat id: {call.message.chat.id}')
 
-	bot.edit_message_text('&#10071; Возникла ошибка, попробуйте еще раз.', call.message.chat.id, call.message.id, reply_markup=None)
+	bot.edit_message_text(L10n.get('error.callback_query'), call.message.chat.id, call.message.id, reply_markup=None)

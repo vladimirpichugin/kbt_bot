@@ -22,7 +22,7 @@ def cmd_start():
     markup = InlineKeyboardMarkup()
 
     markup.row(
-        InlineKeyboardButton(L10n.get('start.button.schedule'), callback_data=json.dumps({'group_name': 'my_group'}))
+        InlineKeyboardButton(L10n.get('start.button.schedule'), callback_data=json.dumps({'schedule': True}))
     )
 
     #markup.row(
@@ -70,8 +70,8 @@ def cmd_abiturient():
     return text, markup
 
 
-def cmd_schedule_groups(faculty=None, include_teacher=False, include_menu=True):
-    text = "Выберите группу."
+def cmd_schedule(faculty=None, include_teacher=False, include_menu=True):
+    text = L10n.get('schedule')
     markup = InlineKeyboardMarkup()
 
     if faculty:
@@ -94,7 +94,7 @@ def cmd_schedule_groups(faculty=None, include_teacher=False, include_menu=True):
         markup.row(*buttons)
 
     if include_teacher:
-        markup.row(InlineKeyboardButton('По преподавателю', callback_data=json.dumps({'teacher': True})))
+        markup.row(InlineKeyboardButton(L10n.get('schedule.by_teacher.button'), callback_data=json.dumps({'teacher': True})))
 
     if include_menu:
         markup.row(
@@ -159,12 +159,13 @@ def get_menu_markup():
     return markup
 
 
-def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, include_back_button=True, include_menu_button=False):
+def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, include_head=True, include_back_button=True, include_menu_button=False, return_unsubscribe_button=False):
     day_fmt = day.strftime('%d.%m.%y')
 
     lessons_text = []
     link = Settings.DOMAIN + schedule.get('link') if schedule.get('link') else None
     schedule_groups = schedule.get('data')
+    room = None
 
     for schedule_group in schedule_groups:
         info = schedule_group.get('info', {})
@@ -208,8 +209,12 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
         break
 
     if lessons_text:
-        text = L10n.get('schedule.body').format(
-            date=day_fmt,
+        text = ''
+
+        if include_head:
+            text = L10n.get('schedule.head').format(date=day_fmt) + '\n'
+
+        text += L10n.get('schedule.body').format(
             group_name=group_name,
             room=room,
             lessons=lessons_text
@@ -224,24 +229,27 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
 
     if group_name in subscribe_schedule_groups:
         text += '\n\n' + L10n.get('schedule.subscribe.status.subscribed').format(group_name=group_name)
-        markup.row(
-            InlineKeyboardButton(L10n.get('schedule.unsubscribe.button').format(group_name=group_name),
-                                 callback_data=json.dumps({'group_name': group_name, 'unsubscribe': True}))
-        )
+        button = InlineKeyboardButton(
+            L10n.get('schedule.unsubscribe.button').format(group_name=group_name),
+            callback_data=json.dumps({'group_name': group_name, 'unsubscribe': True}))
+        markup.row(button)
     else:
         if not subscribe_schedule_groups:
             text += '\n\n' + L10n.get('schedule.subscribe.status.not_subscribed').format(group_name=group_name)
-        markup.row(
-            InlineKeyboardButton(L10n.get('schedule.subscribe.button').format(group_name=group_name),
-                                 callback_data=json.dumps({'group_name': group_name, 'subscribe': True}))
-        )
+        button = InlineKeyboardButton(
+            L10n.get('schedule.subscribe.button').format(group_name=group_name),
+            callback_data=json.dumps({'group_name': group_name, 'subscribe': True}))
+        markup.row(button)
 
-    markup = _add_schedule_buttons(markup, link, include_menu_button, include_back_button)
+    markup = add_schedule_buttons(markup, link, include_menu_button, include_back_button)
+
+    if return_unsubscribe_button:
+        markup = button
 
     return text, markup
 
 
-def cmd_schedule_teacher(schedule, teacher, subscribe_schedule_teachers, day, include_back_button=True, include_menu_button=False):
+def cmd_schedule_teacher(schedule, teacher, subscribe_schedule_teachers, day, include_head=True, include_back_button=True, include_menu_button=False, return_unsubscribe_button=False):
     find_teacher = teacher.split(' ')[0]
     day_fmt = day.strftime('%d.%m.%y')
 
@@ -288,8 +296,12 @@ def cmd_schedule_teacher(schedule, teacher, subscribe_schedule_teachers, day, in
     lessons_text = '\n\n'.join(lessons_text)
 
     if lessons_text:
-        text = L10n.get('schedule.by_teacher.body').format(
-            date=day_fmt,
+        text = ''
+
+        if include_head:
+            text = L10n.get('schedule.by_teacher.head').format(date=day_fmt) + '\n'
+
+        text += L10n.get('schedule.by_teacher.body').format(
             teacher=teacher,
             lessons=lessons_text
         )
@@ -301,19 +313,23 @@ def cmd_schedule_teacher(schedule, teacher, subscribe_schedule_teachers, day, in
 
     markup = InlineKeyboardMarkup()
 
+    button = None
     if teacher in subscribe_schedule_teachers:
         text += '\n\n' + L10n.get('schedule.by_teacher.status.subscribed').format(teacher=teacher)
-        markup.row(
-            InlineKeyboardButton(L10n.get('schedule.by_teacher.unsubscribe.button').format(teacher=teacher),
-                                 callback_data=json.dumps({'teacher': True, 'unsubscribe': True}))
-        )
+        button = InlineKeyboardButton(
+            L10n.get('schedule.by_teacher.unsubscribe.button').format(teacher=teacher),
+            callback_data=json.dumps({'teacher': True, 'unsubscribe': True}))
+        markup.row(button)
 
-    markup = _add_schedule_buttons(markup, link, include_menu_button, include_back_button)
+    markup = add_schedule_buttons(markup, link, include_menu_button, include_back_button)
+
+    if return_unsubscribe_button and button:
+        markup = button
 
     return text, markup
 
 
-def _add_schedule_buttons(markup, link, include_menu_button, include_back_button):
+def add_schedule_buttons(markup, link, include_menu_button, include_back_button):
     if link:
         link += '?utm_source=telegram_bot&utm_medium=MosKBT_BOT'
         markup.row(
