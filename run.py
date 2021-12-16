@@ -9,10 +9,11 @@ import bot
 
 
 if __name__ == "__main__":
-    console_thread = threading.Thread(target=bot.console)
-    console_thread.setName('ConsoleThread')
-    console_thread.daemon = True
-    console_thread.start()
+    bot.logger.debug("Initializing bot polling..")
+    thread_bot = threading.Thread(target=bot.bot_polling)
+    thread_bot.setName('BotThread')
+    thread_bot.daemon = True
+    thread_bot.start()
 
     bot.logger.debug("Initializing schedule polling..")
     thread_schedule = threading.Thread(target=bot.schedule_polling)
@@ -20,14 +21,13 @@ if __name__ == "__main__":
     thread_schedule.daemon = True
     thread_schedule.start()
 
-    schedule.every().day.at(bot.Settings.SCHEDULE_NOTIFY_START_TIME).do(bot.run_threaded, name='NotifyStudents', func=bot.schedule_notify)
-    schedule.every().day.at(bot.Settings.SCHEDULE_NOTIFY_START_TIME).do(bot.run_threaded, name='NotifyTeachers', func=bot.schedule_notify_teachers)
+    console_thread = threading.Thread(target=bot.console)
+    console_thread.setName('ConsoleThread')
+    console_thread.daemon = True
+    console_thread.start()
 
-    bot.logger.debug("Initializing bot polling..")
-    thread_bot = threading.Thread(target=bot.bot_polling)
-    thread_bot.setName('BotThread')
-    thread_bot.daemon = True
-    thread_bot.start()
+    schedule.every().day.at(bot.Settings.SCHEDULE_NOTIFY_START_TIME).do(bot.run_threaded, name='NotifyStudents', func=bot.schedule_notify_students)
+    schedule.every().day.at(bot.Settings.SCHEDULE_NOTIFY_START_TIME).do(bot.run_threaded, name='NotifyTeachers', func=bot.schedule_notify_teachers)
 
     # Поддерживать работу основной программы, пока бот работает.
     while True:
