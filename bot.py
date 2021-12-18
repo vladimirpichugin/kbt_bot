@@ -41,6 +41,8 @@ def bot_polling():
 	try:
 		while True:
 			try:
+				me = bot.get_me()
+				logger.info('Logged as {} ({})'.format(me.first_name, me.username))
 				logger.info("Starting bot polling.")
 				bot.enable_save_next_step_handlers(delay=3)
 				bot.load_next_step_handlers()
@@ -738,4 +740,9 @@ def callback_query(call):
 	logger.debug(f'Call parsed data: {call.parsed_data}')
 	logger.debug(f'Chat id: {call.message.chat.id}')
 
-	bot.edit_message_text(L10n.get('error.callback_query'), call.message.chat.id, call.message.id, reply_markup=None)
+	markup = InlineKeyboardMarkup()
+	markup.row(
+		InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+	)
+
+	bot.edit_message_text(L10n.get('error.callback_query'), call.message.chat.id, call.message.id, reply_markup=markup)
