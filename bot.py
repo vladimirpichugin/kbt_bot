@@ -220,7 +220,7 @@ def middleware_handler_message(bot_instance, message):
 			del args[0]
 
 		text_args = ' '.join(args)
-	except IndexError:
+	except (IndexError, AttributeError):
 		args = []
 		cmd = None
 		text_args = ''
