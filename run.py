@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # Author: Vladimir Pichugin <vladimir@pichug.in>
-
 import time
 import threading
 import schedule
@@ -34,6 +33,10 @@ if __name__ == "__main__":
         try:
             if not thread_bot.is_alive():
                 bot.logger.error("Bot polling pool is not alive, shutting down..")
+                break
+
+            if not schedule.get_jobs():
+                bot.logger.error("Schedule jobs not found, shutting down..")
                 break
 
             schedule.run_pending()
