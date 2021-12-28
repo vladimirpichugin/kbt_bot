@@ -240,9 +240,13 @@ def middleware_handler_callback_query(bot_instance, call):
 	call.parsed_data = parsed_data
 
 	# Подгружаем клиента только для команды с расписанием.
-	if 'group_name' in parsed_data or 'faculty' in parsed_data or 'teacher' in parsed_data or 'schedule' in parsed_data:
-		client = storage.get_client(call.from_user)
-		call.client = client
+	cmds = ['group_name', 'faculty', 'teacher', 'schedule', 'menu']
+
+	for cmd in cmds:
+		if cmd in parsed_data:
+			client = storage.get_client(call.from_user)
+			call.client = client
+			break
 
 
 @bot.message_handler(commands=['start', 'старт'])
@@ -690,16 +694,10 @@ def callback_query_contacts(call):
 		markup = InlineKeyboardMarkup()
 
 		markup.row(
-			InlineKeyboardButton(L10n.get('contacts.social_networks.telegram.button'), url=L10n.get('contacts.social_networks.telegram.button.link'))
-		)
-
-		markup.row(
 			InlineKeyboardButton(L10n.get('contacts.social_networks.vk.button'), url=L10n.get('contacts.social_networks.vk.button.link')),
-			InlineKeyboardButton(L10n.get('contacts.social_networks.facebook.button'), url=L10n.get('contacts.social_networks.facebook.button.link'))
-		)
-
-		markup.row(
-			InlineKeyboardButton(L10n.get('contacts.social_networks.instagram.button'), url=L10n.get('contacts.social_networks.instagram.button.link'))
+			InlineKeyboardButton(L10n.get('contacts.social_networks.facebook.button'), url=L10n.get('contacts.social_networks.facebook.button.link')),
+			InlineKeyboardButton(L10n.get('contacts.social_networks.instagram.button'), url=L10n.get('contacts.social_networks.instagram.button.link')),
+			InlineKeyboardButton(L10n.get('contacts.social_networks.telegram.button'), url=L10n.get('contacts.social_networks.telegram.button.link'))
 		)
 
 		markup.row(
