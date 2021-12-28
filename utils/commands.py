@@ -24,19 +24,22 @@ def cmd_start():
     markup.row(
         InlineKeyboardButton(L10n.get('start.button.schedule'), callback_data=json.dumps({'schedule': True}))
     )
+    #markup.row(
+    #    InlineKeyboardButton(L10n.get('start.button.staff'), callback_data=json.dumps({'staff': True}))
+    #)
 
     #markup.row(
     #    InlineKeyboardButton(L10n.get('start.button.docs.student_proof'), callback_data=json.dumps({'docs': 'student_proof'}))
     #)
 
     markup.row(
-        InlineKeyboardButton(L10n.get('start.button.abiturient'), callback_data=json.dumps({'abiturient': True})),
-        InlineKeyboardButton(L10n.get('start.button.contacts'), callback_data=json.dumps({'contacts': True}))
+        InlineKeyboardButton(L10n.get('start.button.abiturient'), callback_data=json.dumps({'abiturient': True}))
     )
 
     markup.row(
-        InlineKeyboardButton(L10n.get('start.button.social_networks'), callback_data=json.dumps({'contacts': 'social_networks'})),
         InlineKeyboardButton(L10n.get('start.button.website'), url=L10n.get('start.button.website.link')),
+        InlineKeyboardButton(L10n.get('start.button.social_networks'), callback_data=json.dumps({'contacts': 'social_networks'})),
+        InlineKeyboardButton(L10n.get('start.button.contacts'), callback_data=json.dumps({'contacts': True}))
     )
 
     return text, markup
@@ -51,11 +54,11 @@ def cmd_abiturient():
     )
 
     markup.row(
-        InlineKeyboardButton(L10n.get('abiturient.1.button'), url=L10n.get('abiturient.1.button.link'))
+        InlineKeyboardButton(L10n.get('abiturient.1.button'), url=L10n.get('abiturient.1.button.link')),
+        InlineKeyboardButton(L10n.get('abiturient.2.button'), url=L10n.get('abiturient.2.button.link'))
     )
 
     markup.row(
-        InlineKeyboardButton(L10n.get('abiturient.2.button'), url=L10n.get('abiturient.2.button.link')),
         InlineKeyboardButton(L10n.get('abiturient.3.button'), url=L10n.get('abiturient.3.button.link'))
     )
 
