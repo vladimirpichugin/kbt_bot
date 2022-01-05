@@ -32,7 +32,7 @@
     "schedule.button": "Открыть расписание",
     "schedule.subscribe.button": "Подписаться на «{group_name}»",
     "schedule.unsubscribe.button": "Отписаться от «{group_name}»",
-    "schedule.open_site.button": "Смотреть на сайте",
+    "schedule.open_site.button": "Сайт",
     "schedule.by_teacher.button": "Указать преподавателя",
     "schedule.by_teacher": "Чтобы подписаться на расписание преподавателя, отправьте <b>фамилию и инициалы</b>, как в расписании.\nПример: <b>Иванов И И</b>",
     "schedule.by_teacher.cancel": "Поиск преподавателя по фамилии отменён.",
