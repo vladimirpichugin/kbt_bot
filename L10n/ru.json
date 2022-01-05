@@ -21,7 +21,7 @@
     "schedule.not_found.group": "&#10071; Нет расписания для группы <b>{group_name}</b> на <b>{date}</b>.",
     "schedule.head": "Расписание на <b>{date}</b>",
     "schedule.body": "Группа <b>{group_name} <u>{room}</u></b>\n{lessons}",
-    "schedule.body.lesson": "<b>№ {}.</b> {}",
+    "schedule.body.lesson": "<b>№ {} <u>{}</u>.</b> {}",
     "schedule.faculty_not_found": "Группы «{faculty}» не найдены.",
     "schedule.unsubscribe": "&#10071; Вы отписались от расписание группы <b>{group_name}</b>.",
     "schedule.unsubscribe.alert": "Вы отписались от расписания группы «{group_name}».",

@@ -15,6 +15,7 @@ class CollegeScheduleGrabber:
     def __init__(self, domain, blog_path):
         self.domain = domain
         self.blog_path = blog_path
+        self.pattern_head = re.compile(r'^(?P<f>([А-Я]{1,2}))(\s)?(?P<n>[0-9]{2})([\s\-])?(?P<y>[0-9]{2})\s(?P<r>.+)?', flags=re.IGNORECASE)
 
     def parse_articles(self) -> list:
         link = self.domain + self.blog_path
@@ -42,55 +43,89 @@ class CollegeScheduleGrabber:
         return articles
 
     def parse_article(self, article_path: str) -> list:
-        pattern = re.compile(r'^(?P<f>([А-Я]{1,2}))(\s)?(?P<n>[0-9]{2})([\s\-])?(?P<y>[0-9]{2})\s(?P<r>.+)?', flags=re.IGNORECASE)
         link = self.domain + article_path
 
         schedule_content = requests.get(link)
 
         soup = BeautifulSoup(schedule_content.content, "html.parser")
 
-        tables = soup.find("div", class_="kris-post-item-txt").find_all("table")
+        table_all = soup.find("div", class_="kris-post-item-txt").find_all("table")
+
+        times = []
+        for table_id, table in enumerate(table_all):
+            table_times = []
+            table_tbody = table.find("tbody")
+            tr_all = table_tbody.find_all("tr")
+
+            for tr_id, tr in enumerate(tr_all):
+                td_all = tr.find_all("td")
+
+                for c_r_i, rows in enumerate(td_all):
+                    if c_r_i == 0 and tr_id == 0:
+                        for i in range(0, 5):
+                            if len(tr_all) <= i:
+                                continue
+
+                            time_line_td = tr_all[i].find_all("td")
+                            time_line = time_line_td[c_r_i]
+                            time_line_text = time_line.text.replace(u'\xa0', '').replace('\n', '').strip()
+
+                            if not time_line_text:
+                                continue
+
+                            if 'время' in time_line_text:
+                                continue
+
+                            table_times.append(time_line_text)
+            times.append(table_times)
+
+        logger.debug(
+            times
+        )
 
         schedule = []
-        for table_index, table in enumerate(tables):
-            g_s_c = table.find("tbody").find_all("tr")
+        for table_id, table in enumerate(table_all):
+            table_tbody = table.find("tbody")
+            tr_all = table_tbody.find_all("tr")
 
-            for column in g_s_c:
-                column_rows = column.find_all("td")
+            for tr_id, tr in enumerate(tr_all):
+                td_all = tr.find_all("td")
 
-                for c_r_i, rows in enumerate(column_rows):
-                    _rows = rows.find_all("p")
+                for c_r_i, rows in enumerate(td_all):
+                    row_lines = rows.find_all("p")
+                    row_lines = [_.text for _ in row_lines]
 
-                    for r_i, row in enumerate([_.text for _ in _rows]):
-                        r = pattern.search(row)
+                    for line_id, line in enumerate(row_lines):
+                        regex_head = self.pattern_head.search(line)
 
-                        if r:
+                        if regex_head:
                             lessons = []
                             for i in range(1, 5):
-                                lessons.append(g_s_c[r_i + i].find_all("td")[c_r_i].text.replace(u'\xa0', ''))
+                                lessons.append(tr_all[line_id + i].find_all("td")[c_r_i].text.replace(u'\xa0', ''))
 
                             lessons = CollegeScheduleAbc.parse_lessons(lessons)
 
-                            room = r.group('r') or ''
+                            room = regex_head.group('r') or ''
                             room = room.lower().replace('\n', '').strip()
 
                             if room in ['ауд.']:
                                 room = None
 
-                            info = {
-                                'room': room,
-                                'group': {
-                                    'name': r.group('f') + r.group('n') + '-' + r.group('y'),
-                                    'f': r.group('f'),
-                                    'n': r.group('n'),
-                                    'y': r.group('y')
-                                }
+                            schedule_group = {
+                                'info': {
+                                    'room': room,
+                                    'group': {
+                                        'name': regex_head.group('f') + regex_head.group('n') + '-' + regex_head.group('y'),
+                                        'f': regex_head.group('f'),
+                                        'n': regex_head.group('n'),
+                                        'y': regex_head.group('y')
+                                    },
+                                    'time': times[table_id]
+                                },
+                                'lessons': lessons
                             }
 
-                            schedule.append({
-                                'info': info,
-                                'lessons': lessons
-                            })
+                            schedule.append(schedule_group)
 
         return schedule
 

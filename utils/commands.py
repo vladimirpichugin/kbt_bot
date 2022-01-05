@@ -176,6 +176,7 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
 
         schedule_group_name = info.get('group').get('name')
         room = info.get('room')
+        group_time = info.get('time')
 
         if schedule_group_name != group_name:
             continue
@@ -186,7 +187,8 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
         for l in lessons:
             lesson_text = L10n.get('schedule.body.lesson')
 
-            l_id = l.get('id')
+            l_id = int(l.get('id'))
+            l_time = group_time[l_id - 1]
             name = l.get('name')
             teacher = l.get('teacher', {}).get('full_name')
             info = l.get('info')
@@ -203,7 +205,7 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
                 lesson.append(info)
 
             lesson = '\n'.join(lesson)
-            lesson_text = lesson_text.format(l_id, lesson)
+            lesson_text = lesson_text.format(l_id, l_time, lesson)
 
             lessons_text.append(lesson_text)
 
