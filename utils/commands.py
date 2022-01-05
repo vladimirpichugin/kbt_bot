@@ -6,7 +6,7 @@ import re
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from operator import itemgetter
 
-from .helpers import init_logger
+from .helpers import init_logger, get_fast_auth_url
 from .json import Json
 
 from settings import Settings
@@ -363,3 +363,16 @@ def add_schedule_buttons(markup, link, include_menu_button, include_back_button)
             )
 
     return markup
+
+
+def cmd_auth(uid):
+    auth_url = get_fast_auth_url(uid)
+
+    text = L10n.get('auth.students')
+    markup = InlineKeyboardMarkup()
+
+    markup.row(
+        InlineKeyboardButton(L10n.get('auth.students.button'), url=auth_url)
+    )
+
+    return text, markup

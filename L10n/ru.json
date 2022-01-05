@@ -109,6 +109,9 @@
     "abiturient.4.button": "Списки на зачисление",
     "abiturient.4.button.link": "https://cbcol.mskobr.ru/abiturientam/rekomendovannyie-k-zachisleniyu?utm_source=telegram_bot&utm_medium=MosKBT_BOT",
 
+    "auth.students": "🔑 Войдите через ВКонтакте.",
+    "auth.students.button": "🔑 Войти",
+
     "docs": "Выберите тип справки.",
     "docs.student_proof": "Справка об обучении",
 

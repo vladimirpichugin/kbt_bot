@@ -5,6 +5,10 @@ class Settings:
     DEBUG = True
     DEBUG_TELEBOT = False
 
+    AUTH_URL = 'https://pichugin.life/api/login?hash={hash}&uid={uid}&d={d}&s={s}&role=fast-auth&v=1'
+    AUTH_SERVICE = ''
+    AUTH_SERVICE_PUB_KEY = ''
+
     BOT_TOKEN = ''
     BOT_TIMEOUT = 10
     BOT_INTERVAL = 3

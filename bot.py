@@ -730,6 +730,55 @@ def callback_query_contacts(call):
 	bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
 
 
+@bot.message_handler(commands=['auth'])
+def auth(message):
+	client = message.client
+
+	if not client.get('phone_number'):
+		text = 'Вход для студентов.'
+
+		markup = ReplyKeyboardMarkup(one_time_keyboard=True)
+		markup.add(KeyboardButton(text='🔑 Войти', request_contact=True))
+	else:
+		text, markup = cmd_auth(message.chat.id)
+
+	bot.send_message(message.chat.id, text, reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda call: call.parsed_data.get('auth') is not None)
+def callback_query_auth(call):
+	client = call.client
+
+	if not client.get('phone_number'):
+		text = L10n.get('auth.students')
+
+		markup = ReplyKeyboardMarkup(one_time_keyboard=True)
+		markup.add(KeyboardButton(text=L10n.get('auth.students.button'), request_contact=True))
+	else:
+		text, markup = cmd_auth(call.message.chat.id)
+
+	bot.send_message(call.message.chat.id, text, reply_markup=markup)
+
+
+@bot.message_handler(content_types=['contact'])
+def callback_query_contact(message):
+	if message.contact is not None:
+		client = message.client
+		contact = message.contact
+
+		client['phone_number'] = get_phone(contact.phone_number)
+		storage.save_client(message.from_user, client)
+
+		bot.delete_message(message.chat.id, message.id)
+		if message.reply_to_message:
+			if message.reply_to_message.from_user.is_bot:
+				bot.delete_message(message.chat.id, message.reply_to_message.id)
+
+		text, markup = cmd_auth(message.chat.id)
+
+		bot.send_message(message.chat.id, text, reply_markup=markup)
+
+
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
 	logger.debug('Событие с кнопки не обработано. Сообщение с клавиатурой удалено.')

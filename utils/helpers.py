@@ -4,6 +4,9 @@ import pathlib
 import os
 import logging
 import inspect
+import re
+import time
+import hashlib
 
 from settings import Settings
 
@@ -58,3 +61,24 @@ def get_logger_stream_handler():
     stream_handler.setFormatter(get_logger_formatter(u'[%(asctime)s] %(levelname)-6s %(threadName)-14s: %(message)s'))
 
     return stream_handler
+
+
+def get_phone(string):
+    pattern = re.compile(r"^\+?(?P<phone_number>\d{11})$")
+    r = re.search(pattern, string)
+    if r is not None:
+        return int(r.group())
+    return None
+
+
+def get_fast_auth_url(uid):
+    url = Settings.AUTH_URL
+    date = int(time.time())
+
+    a_hash = ' {up} '.join(str(_) for _ in [uid, Settings.AUTH_SERVICE, date, Settings.AUTH_SERVICE_PUB_KEY])
+    a_hash = a_hash.encode('utf-8')
+    a_hash = hashlib.sha256(a_hash).hexdigest()
+
+    url = url.format(hash=a_hash, uid=uid, d=date, s=Settings.AUTH_SERVICE)
+
+    return url
