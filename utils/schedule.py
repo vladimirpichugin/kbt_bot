@@ -79,10 +79,6 @@ class CollegeScheduleGrabber:
                             table_times.append(time_line_text)
             times.append(table_times)
 
-        logger.debug(
-            times
-        )
-
         schedule = []
         for table_id, table in enumerate(table_all):
             table_tbody = table.find("tbody")
