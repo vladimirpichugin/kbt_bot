@@ -4,6 +4,7 @@ import json
 import re
 
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from operator import itemgetter
 
 from .helpers import init_logger
 from .json import Json
@@ -258,7 +259,7 @@ def cmd_schedule_teacher(schedule, teacher, subscribe_schedule_teachers, day, in
     find_teacher = teacher.split(' ')[0]
     day_fmt = day.strftime('%d.%m.%y')
 
-    lessons_text = []
+    lessons_items = []
     link = Settings.DOMAIN + schedule.get('link') if schedule.get('link') else None
     schedule_groups = schedule.get('data')
 
@@ -267,6 +268,7 @@ def cmd_schedule_teacher(schedule, teacher, subscribe_schedule_teachers, day, in
         lessons = schedule_group.get('lessons', [])
 
         schedule_group_name = info.get('group').get('name')
+        schedule_group_time = info.get('time')
         room = info.get('room')
 
         if not any(lessons):
@@ -275,7 +277,8 @@ def cmd_schedule_teacher(schedule, teacher, subscribe_schedule_teachers, day, in
         for l in lessons:
             lesson_text = L10n.get('schedule.by_teacher.body.lesson')
 
-            l_id = l.get('id')
+            l_id = int(l.get('id'))
+            l_time = schedule_group_time[l_id - 1]
             name = l.get('name')
             info = l.get('info')
             raw = l.get('raw')
@@ -294,11 +297,13 @@ def cmd_schedule_teacher(schedule, teacher, subscribe_schedule_teachers, day, in
                 lesson.append(room)
 
             lesson = '\n'.join(lesson)
-            lesson_text = lesson_text.format(l_id, schedule_group_name, name, lesson)
+            lesson_text = lesson_text.format(l_id, l_time, schedule_group_name, name, lesson)
 
-            lessons_text.append(lesson_text)
+            lessons_items.append((lesson_text, l_id))
 
-    lessons_text = '\n\n'.join(lessons_text)
+    lessons_items = sorted(lessons_items, key=itemgetter(1))
+
+    lessons_text = '\n\n'.join([item[0] for item in lessons_items])
 
     if lessons_text:
         text = ''

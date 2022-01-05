@@ -46,7 +46,7 @@
     "schedule.by_teacher.status.not_subscribed": "Вы можете подписаться на расписание преподавателя <b>{teacher}</b>.",
     "schedule.by_teacher.head": "Расписание на <b>{date}</b>",
     "schedule.by_teacher.body": "Преподаватель <b>{teacher}</b>:\n{lessons}",
-    "schedule.by_teacher.body.lesson": "<b>№ {} {}. {}</b>\n{}",
+    "schedule.by_teacher.body.lesson": "<b>№ {} <u>{}</u> {}. {}</b>\n{}",
     "schedule.by_teacher.not_found": "&#10071; Нет расписания для преподавателя <b>{teacher}</b> на <b>{date}</b>.",
 
     "contacts": "Контактные данные\n\nСекретарь:\n<b>Кустова Ольга Анатольевна</b>\n+7 499 253-59-31\n\nЭлектронная почта:\n<code>kbt@edu.mos.ru</code>",
