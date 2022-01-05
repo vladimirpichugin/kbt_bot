@@ -3,7 +3,8 @@
 import telebot
 import threading
 import fpdf
-from time import sleep
+
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
 from utils import *
 
@@ -50,7 +51,7 @@ def bot_polling():
 			except Exception as ex:
 				logger.error(f"Bot polling failed, restarting in {Settings.BOT_TIMEOUT} sec.", exc_info=True)
 				bot.stop_polling()
-				sleep(Settings.BOT_TIMEOUT)
+				time.sleep(Settings.BOT_TIMEOUT)
 			else:
 				bot.stop_polling()
 				logger.info("Bot polling loop finished.")
@@ -69,7 +70,7 @@ def schedule_polling():
 				articles = g.parse_articles()
 
 				if not articles:
-					sleep(t / 2)
+					time.sleep(t / 2)
 					continue
 
 				articles = CollegeScheduleAbc.get_articles(articles)
@@ -95,7 +96,7 @@ def schedule_polling():
 				logger.debug(article)
 				logger.error('Schedule polling loop crashed', exc_info=True)
 
-			sleep(t)
+			time.sleep(t)
 	except Exception:
 		logger.error('Schedule polling loop crashed', exc_info=True)
 
@@ -122,14 +123,14 @@ def schedule_notify(notify_teachers=False, next_day=True):
 			logger.debug(f'storage.get_schedule: {schedule}')
 			logger.error(f'Рассылка перенесена, нет расписания на {day}.')
 			logger.info(f'Повторная попытка через {t / 60} мин.')
-			sleep(t)
+			time.sleep(t)
 			continue  # Try again.
 
 		clients = storage.get_clients()
 		if not clients:
 			logger.error(f'Рассылка перенесена, нет получателей.')
 			logger.info(f'Повторная попытка через {t / 60} мин.')
-			sleep(t)
+			time.sleep(t)
 			continue  # Try again.
 
 		notify_clients = {}
