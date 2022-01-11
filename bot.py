@@ -83,7 +83,7 @@ def schedule_polling():
 					path = article.get('link')
 
 					time_diff = datetime.datetime.today() - date
-					if time_diff.total_seconds() > 86400:
+					if abs(time_diff.total_seconds()) > 86400:
 						logger.debug(f'Schedule polling, {date} skipped')
 						continue
 
