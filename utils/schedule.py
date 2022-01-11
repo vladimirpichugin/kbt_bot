@@ -164,6 +164,7 @@ class CollegeScheduleAbc:
 
     @staticmethod
     def get_articles(articles: list) -> list:
+        # todo: Брать год из даты.
         pattern = re.compile('(?P<d>([0-9]{1,2}))\s+(?P<m>([а-я]{3}))', flags=re.IGNORECASE)
         months = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
 
