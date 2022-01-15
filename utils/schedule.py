@@ -164,35 +164,32 @@ class CollegeScheduleAbc:
 
     @staticmethod
     def get_articles(articles: list) -> list:
-        # todo: Брать год из даты.
-        pattern = re.compile('(?P<d>([0-9]{1,2}))\s+(?P<m>([а-я]{3}))', flags=re.IGNORECASE)
+        pattern = re.compile('(?P<d>[0-9]{1,2})\s?(?P<m>[а-я]+)\s?(?P<y>[0-9]{4})\s?[г]?', flags=re.IGNORECASE)
         months = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
 
         parsed_articles = []
-        for article_title, article_link in articles:
+        for a_title, a_link in articles:
             try:
-                article_date = re.search(pattern, article_title)
+                a_regex_date = re.search(pattern, a_title)
 
-                if not article_date:
+                if not a_regex_date:
                     continue
 
-                article_day, article_month = int(article_date.group('d')), str(article_date.group('m'))
-                article_month_num = months.index(article_month)+1
+                a_day = int(a_regex_date.group('d'))
+                a_month_name = str(a_regex_date.group('m')).lower()
+                a_year = int(a_regex_date.group('y')) or datetime.datetime.today().year
 
-                day = datetime.datetime(
-                    day=article_day,
-                    month=article_month_num,
-                    year=datetime.datetime.today().year
-                )
+                a_month = months.index(a_month_name[:3])+1
+
+                day = datetime.datetime(day=a_day, month=a_month, year=a_year)
 
                 parsed_articles.append(
-                    ScheduleArticle(title=article_title, link=article_link, date=day)
+                    ScheduleArticle(title=a_title, link=a_link, date=day)
                 )
             except Exception:
                 logger.error(f'Исключение при обработке страницы блога (articles), проверь результат регулярки', exc_info=True)
-                logger.debug(article_title)
-                logger.debug(article_link)
-                logger.debug(article_date)
+                logger.debug(a_title)
+                logger.debug(a_link)
 
         return parsed_articles
 

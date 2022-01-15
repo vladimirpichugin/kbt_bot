@@ -67,37 +67,33 @@ def schedule_polling():
 
 		while True:
 			try:
+				today = datetime.datetime.today()
+				today = today.replace(hour=0, minute=0, second=0, microsecond=0)
+
 				articles = g.parse_articles()
 
 				if not articles:
-					time.sleep(t / 2)
+					time.sleep(t)
 					continue
 
 				articles = CollegeScheduleAbc.get_articles(articles)
 
 				for article in articles:
-					date = article.get('date')
-					if not date:
+					article_date = article.get('date')
+					article_path = article.get('link')
+
+					if not article_date:
 						continue
 
-					path = article.get('link')
-
-					time_diff = datetime.datetime.today() - date
-					if abs(time_diff.total_seconds()) > 86400:
-						logger.debug(f'Schedule polling, {date} skipped')
-						continue
-
-					article_groups = g.parse_article(path)
-
-					article['data'] = article_groups
-
-					storage.save_schedule(article)
-			except Exception:
-				logger.debug(article)
-				logger.error('Schedule polling loop crashed', exc_info=True)
+					if article_date >= today:
+						article_groups = g.parse_article(article_path)
+						article['data'] = article_groups
+						storage.save_schedule(article)
+			except:
+				logger.error('Exception in schedule polling loop', exc_info=True)
 
 			time.sleep(t)
-	except Exception:
+	except:
 		logger.error('Schedule polling loop crashed', exc_info=True)
 
 
