@@ -472,6 +472,17 @@ def callback_query_schedule_by_teacher(call):
 
 		day = CollegeScheduleAbc.get_weekday(next_day=False)
 		schedule = storage.get_schedule(date=day)
+		if not schedule:
+			text = L10n.get('schedule.not_found').format(date=day.strftime('%d.%m.%y'))
+
+			markup = InlineKeyboardMarkup()
+			markup.row(
+				InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+			)
+
+			bot.send_message(call.message.chat.id, text, reply_markup=markup)
+
+			return False
 
 		text, _ = cmd_schedule_teacher(schedule, teacher, [], day, include_back_button=False)
 		text += '\n\n' + L10n.get('schedule.by_teacher.status.subscribed').format(teacher=teacher)
