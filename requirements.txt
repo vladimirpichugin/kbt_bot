@@ -4,3 +4,4 @@ requests
 pyTelegramBotAPI==4.2.2
 pymongo
 fpdf==1.7.2
+urllib3==1.26.8

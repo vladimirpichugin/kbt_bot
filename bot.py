@@ -3,6 +3,7 @@
 import telebot
 import threading
 import fpdf
+import urllib.parse
 
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
@@ -230,14 +231,27 @@ def middleware_handler_message(bot_instance, message):
 @bot.middleware_handler(update_types=['callback_query'])
 def middleware_handler_callback_query(bot_instance, call):
 	try:
-		parsed_data = json.loads(call.data)
-	except (TypeError, json.JSONDecodeError):
+		call_data = call.data
+
+		if call_data[0] == '{':  # Legacy.
+			parsed_data = json.loads(call_data)
+		else:
+			parsed_data = urllib.parse.parse_qs(call_data)
+			for key, value in parsed_data.items():
+				value = value[0]
+				if value == 'y':
+					value = True
+				if value == 'n':
+					value = False
+				parsed_data[key] = value
+
+	except (TypeError, IndexError, ValueError, json.JSONDecodeError):
 		parsed_data = {}
 
 	call.parsed_data = parsed_data
 
-	# Подгружаем клиента только для команды с расписанием.
-	cmds = ['group_name', 'faculty', 'teacher', 'schedule', 'menu']
+	# Подгружаем клиента только при появлении аргументов.
+	cmds = ['group_name', 'faculty', 'teacher', 'schedule']
 
 	for cmd in cmds:
 		if cmd in parsed_data:
@@ -289,7 +303,7 @@ def schedule(message):
 
 		markup = InlineKeyboardMarkup()
 		markup.row(
-			InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+			InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y')
 		)
 
 		bot.send_message(message.chat.id, text, reply_markup=markup)
@@ -356,11 +370,11 @@ def callback_query_schedule(call):
 		markup = InlineKeyboardMarkup()
 
 		markup.row(
-			InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'group_name': group_name}))
+			InlineKeyboardButton(L10n.get('back.button'), callback_data='group_name={}'.format(group_name))
 		)
 
 		markup.row(
-			InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+			InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y')
 		)
 
 		text = L10n.get("schedule.subscribe.alert").format(group_name=group_name)
@@ -379,11 +393,11 @@ def callback_query_schedule(call):
 		markup = InlineKeyboardMarkup()
 
 		markup.row(
-			InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'group_name': group_name}))
+			InlineKeyboardButton(L10n.get('back.button'), callback_data='group_name={}'.format(group_name))
 		)
 
 		markup.row(
-			InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+			InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y')
 		)
 
 		text = L10n.get("schedule.unsubscribe.alert").format(group_name=group_name)
@@ -405,7 +419,7 @@ def callback_query_schedule(call):
 
 		markup = InlineKeyboardMarkup()
 		markup.row(
-			InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+			InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y')
 		)
 
 		bot.send_message(call.message.chat.id, text, reply_markup=markup)
@@ -443,10 +457,10 @@ def callback_query_schedule_by_teacher(call):
 		bot.clear_step_handler(call.message)
 		markup = InlineKeyboardMarkup()
 		markup.row(
-			InlineKeyboardButton(L10n.get('schedule.by_teacher.button'), callback_data=json.dumps({'teacher': True}))
+			InlineKeyboardButton(L10n.get('schedule.by_teacher.button'), callback_data='teacher=y')
 		)
 		markup.row(
-			InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True}))
+			InlineKeyboardButton(L10n.get('back.button'), callback_data='faculty=y')
 		)
 		bot.edit_message_text(L10n.get('schedule.by_teacher.cancel'), call.message.chat.id, call.message.id, reply_markup=markup)
 
@@ -455,10 +469,10 @@ def callback_query_schedule_by_teacher(call):
 	if unsubscribe:
 		markup = InlineKeyboardMarkup()
 		markup.row(
-			InlineKeyboardButton(L10n.get('schedule.by_teacher.button'), callback_data=json.dumps({'teacher': True}))
+			InlineKeyboardButton(L10n.get('schedule.by_teacher.button'), callback_data='teacher=y')
 		)
 		markup.row(
-			InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True}))
+			InlineKeyboardButton(L10n.get('back.button'), callback_data='faculty=y')
 		)
 		bot.edit_message_text(L10n.get('schedule.by_teacher.unsubscribe'), call.message.chat.id, call.message.id, reply_markup=markup)
 
@@ -477,7 +491,7 @@ def callback_query_schedule_by_teacher(call):
 
 			markup = InlineKeyboardMarkup()
 			markup.row(
-				InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+				InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y')
 			)
 
 			bot.send_message(call.message.chat.id, text, reply_markup=markup)
@@ -492,11 +506,11 @@ def callback_query_schedule_by_teacher(call):
 		markup.row(
 			InlineKeyboardButton(
 				L10n.get('schedule.by_teacher.unsubscribe.button').format(teacher=teacher),
-				callback_data=json.dumps({'teacher': True, 'unsubscribe': True})
+				callback_data='teacher=y&unsubscribe=y'
 			)
 		)
 		markup.row(
-			InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True}))
+			InlineKeyboardButton(L10n.get('back.button'), callback_data='faculty=y')
 		)
 
 		bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
@@ -505,7 +519,7 @@ def callback_query_schedule_by_teacher(call):
 
 		markup = InlineKeyboardMarkup()
 		markup.row(
-			InlineKeyboardButton(L10n.get('schedule.by_teacher.cancel.button'), callback_data=json.dumps({'teacher': 'cancel'}))
+			InlineKeyboardButton(L10n.get('schedule.by_teacher.cancel.button'), callback_data='teacher=cancel')
 		)
 
 		bot.edit_message_text(L10n.get('schedule.by_teacher'), call.message.chat.id, call.message.id, reply_markup=markup)
@@ -524,7 +538,12 @@ def schedule_by_teacher_start(message, origin_call=None):
 		if origin_call:
 			bot.answer_callback_query(origin_call.id, L10n.get('schedule.by_teacher.subscribe.incorrect_fio.alert'), show_alert=True)
 		else:
-			bot.send_message(message.chat.id, L10n.get('schedule.by_teacher.subscribe.incorrect_fio'))
+			markup = InlineKeyboardMarkup()
+			markup.row(
+				InlineKeyboardButton(L10n.get('schedule.by_teacher.cancel.button'), callback_data='teacher=cancel')
+			)
+
+			bot.send_message(message.chat.id, L10n.get('schedule.by_teacher.subscribe.incorrect_fio'), reply_markup=markup)
 
 		return False
 
@@ -556,11 +575,11 @@ def schedule_by_teacher_start(message, origin_call=None):
 	markup.row(
 		InlineKeyboardButton(
 			L10n.get('schedule.by_teacher.unsubscribe.button').format(teacher=teacher),
-			callback_data=json.dumps({'teacher': True, 'unsubscribe': True})
+			callback_data='teacher=y&unsubscribe=y'
 		)
 	)
 	markup.row(
-		InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True}))
+		InlineKeyboardButton(L10n.get('back.button'), callback_data='faculty=y')
 	)
 
 	bot.send_message(message.chat.id, text, reply_markup=markup)
@@ -695,7 +714,7 @@ def callback_query_contacts(call):
 		markup = InlineKeyboardMarkup()
 
 		markup.row(
-			InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'contacts': True}))
+			InlineKeyboardButton(L10n.get('back.button'), callback_data='contacts=y')
 		)
 	elif contacts == 'social_networks':
 		text = L10n.get('contacts.social_networks')
@@ -713,14 +732,14 @@ def callback_query_contacts(call):
 		)
 
 		markup.row(
-			InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+			InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y')
 		)
 	else:
 		text = L10n.get('contacts')
 		markup = InlineKeyboardMarkup()
 
 		markup.row(
-			InlineKeyboardButton(L10n.get('contacts.address.button'), callback_data=json.dumps({'contacts': 'address'}))
+			InlineKeyboardButton(L10n.get('contacts.address.button'), callback_data='contacts=address')
 		)
 
 		markup.row(
@@ -731,7 +750,7 @@ def callback_query_contacts(call):
 			InlineKeyboardButton(L10n.get('contacts.staff.button'), url=L10n.get('contacts.staff.button.link'))
 		)
 		markup.row(
-			InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+			InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y')
 		)
 
 	bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
@@ -797,7 +816,7 @@ def callback_query(call):
 
 	markup = InlineKeyboardMarkup()
 	markup.row(
-		InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+		InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y')
 	)
 
 	bot.edit_message_text(L10n.get('error.callback_query'), call.message.chat.id, call.message.id, reply_markup=markup)

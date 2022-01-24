@@ -23,24 +23,24 @@ def cmd_start():
     markup = InlineKeyboardMarkup()
 
     markup.row(
-        InlineKeyboardButton(L10n.get('start.button.schedule'), callback_data=json.dumps({'schedule': True}))
+        InlineKeyboardButton(L10n.get('start.button.schedule'), callback_data='schedule=y')
     )
     #markup.row(
-    #    InlineKeyboardButton(L10n.get('start.button.staff'), callback_data=json.dumps({'staff': True}))
+    #    InlineKeyboardButton(L10n.get('start.button.staff'), callback_data='staff=y')
     #)
 
     #markup.row(
-    #    InlineKeyboardButton(L10n.get('start.button.docs.student_proof'), callback_data=json.dumps({'docs': 'student_proof'}))
+    #    InlineKeyboardButton(L10n.get('start.button.docs.student_proof'), callback_data='docs=student_proof')
     #)
 
     markup.row(
-        InlineKeyboardButton(L10n.get('start.button.abiturient'), callback_data=json.dumps({'abiturient': True}))
+        InlineKeyboardButton(L10n.get('start.button.abiturient'), callback_data='abiturient=y')
     )
 
     markup.row(
         InlineKeyboardButton(L10n.get('start.button.website'), url=L10n.get('start.button.website.link')),
-        InlineKeyboardButton(L10n.get('start.button.social_networks'), callback_data=json.dumps({'contacts': 'social_networks'})),
-        InlineKeyboardButton(L10n.get('start.button.contacts'), callback_data=json.dumps({'contacts': True}))
+        InlineKeyboardButton(L10n.get('start.button.social_networks'), callback_data='contacts=social_networks'),
+        InlineKeyboardButton(L10n.get('start.button.contacts'), callback_data='contacts=y')
     )
 
     return text, markup
@@ -51,7 +51,7 @@ def cmd_abiturient():
     markup = InlineKeyboardMarkup()
 
     markup.row(
-        InlineKeyboardButton(L10n.get('abiturient.button.faq'), callback_data=json.dumps({'faq': 'home'}))
+        InlineKeyboardButton(L10n.get('abiturient.button.faq'), callback_data='faq=home')
     )
 
     markup.row(
@@ -68,7 +68,7 @@ def cmd_abiturient():
     )
 
     markup.row(
-        InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+        InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y')
     )
 
     return text, markup
@@ -82,27 +82,27 @@ def cmd_schedule(faculty=None, include_teacher=False, include_menu=True):
         groups = Settings.GROUPS.get(faculty).get('GROUPS')
 
         for _ in range(0, len(groups), 4):
-            buttons = [InlineKeyboardButton(group_name, callback_data=json.dumps({'group_name': group_name})) for group_name in
+            buttons = [InlineKeyboardButton(group_name, callback_data='group_name={}'.format(group_name)) for group_name in
                        groups[_:_ + 4]]
             markup.row(*buttons)
 
         markup.row(
-            InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True}))
+            InlineKeyboardButton(L10n.get('back.button'), callback_data='faculty=y')
         )
 
         return text, markup
 
     for _ in range(0, len(Settings.GROUPS), 4):
-        buttons = [InlineKeyboardButton(faculty, callback_data=json.dumps({'faculty': faculty})) for faculty in
+        buttons = [InlineKeyboardButton(faculty, callback_data='faculty={}'.format(faculty)) for faculty in
                    list(Settings.GROUPS.keys())[_:_ + 4]]
         markup.row(*buttons)
 
     if include_teacher:
-        markup.row(InlineKeyboardButton(L10n.get('schedule.by_teacher.button'), callback_data=json.dumps({'teacher': True})))
+        markup.row(InlineKeyboardButton(L10n.get('schedule.by_teacher.button'), callback_data='teacher=y'))
 
     if include_menu:
         markup.row(
-            InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+            InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y')
         )
 
     return text, markup
@@ -112,11 +112,11 @@ def cmd_docs(include_menu=True):
     text = L10n.get('docs')
 
     markup = InlineKeyboardMarkup()
-    markup.row(InlineKeyboardButton(L10n.get('docs.student_proof'), callback_data=json.dumps({'docs': 'student_proof'})))
+    markup.row(InlineKeyboardButton(L10n.get('docs.student_proof'), callback_data='docs=student_proof'))
 
     if include_menu:
         markup.row(
-            InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+            InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y')
         )
 
     return text, markup
@@ -147,7 +147,7 @@ def cmd_faq(faq=None, include_menu=False):
 
     if include_menu:
         markup.row(
-            InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'abiturient': True}))
+            InlineKeyboardButton(L10n.get('back.button'), callback_data='abiturient=y')
         )
 
     return text, markup
@@ -157,7 +157,7 @@ def get_menu_markup():
     markup = InlineKeyboardMarkup()
 
     markup.row(
-        InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+        InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y')
     )
 
     return markup
@@ -237,14 +237,14 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
         text += '\n\n' + L10n.get('schedule.subscribe.status.subscribed').format(group_name=group_name)
         button = InlineKeyboardButton(
             L10n.get('schedule.unsubscribe.button').format(group_name=group_name),
-            callback_data=json.dumps({'group_name': group_name, 'unsubscribe': True}))
+            callback_data='unsubscribe=y&group_name={}'.format(group_name))
         markup.row(button)
     else:
         if not subscribe_schedule_groups:
             text += '\n\n' + L10n.get('schedule.subscribe.status.not_subscribed').format(group_name=group_name)
         button = InlineKeyboardButton(
             L10n.get('schedule.subscribe.button').format(group_name=group_name),
-            callback_data=json.dumps({'group_name': group_name, 'subscribe': True}))
+            callback_data='subscribe=y&group_name={}'.format(group_name))
         markup.row(button)
 
     markup = add_schedule_buttons(markup, link, include_menu_button, include_back_button)
@@ -328,7 +328,7 @@ def cmd_schedule_teacher(schedule, teacher, subscribe_schedule_teachers, day, in
         text += '\n\n' + L10n.get('schedule.by_teacher.status.subscribed').format(teacher=teacher)
         button = InlineKeyboardButton(
             L10n.get('schedule.by_teacher.unsubscribe.button').format(teacher=teacher),
-            callback_data=json.dumps({'teacher': True, 'unsubscribe': True}))
+            callback_data='teacher=y&unsubscribe=y')
         markup.row(button)
 
     markup = add_schedule_buttons(markup, link, include_menu_button, include_back_button)
@@ -348,18 +348,18 @@ def add_schedule_buttons(markup, link, include_menu_button, include_back_button)
 
     if include_back_button and include_menu_button:
         markup.row(
-            InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True})),
-            InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+            InlineKeyboardButton(L10n.get('back.button'), callback_data='faculty=y'),
+            InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y')
         )
     else:
         if include_back_button:
             markup.row(
-                InlineKeyboardButton(L10n.get('back.button'), callback_data=json.dumps({'faculty': True}))
+                InlineKeyboardButton(L10n.get('back.button'), callback_data='faculty=y')
             )
 
         if include_menu_button:
             markup.row(
-                InlineKeyboardButton(L10n.get('menu.button'), callback_data=json.dumps({'menu': True}))
+                InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y')
             )
 
     return markup
