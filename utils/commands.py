@@ -25,16 +25,10 @@ def cmd_start():
     markup.row(
         InlineKeyboardButton(L10n.get('start.button.schedule'), callback_data='schedule=y')
     )
-    #markup.row(
-    #    InlineKeyboardButton(L10n.get('start.button.staff'), callback_data='staff=y')
-    #)
-
-    #markup.row(
-    #    InlineKeyboardButton(L10n.get('start.button.docs.student_proof'), callback_data='docs=student_proof')
-    #)
 
     markup.row(
-        InlineKeyboardButton(L10n.get('start.button.abiturient'), callback_data='abiturient=y')
+        InlineKeyboardButton(L10n.get('start.button.abiturient'), callback_data='abiturient=y'),
+        InlineKeyboardButton(L10n.get('start.button.student_cert'), callback_data='student_cert=y')
     )
 
     markup.row(
@@ -108,11 +102,11 @@ def cmd_schedule(faculty=None, include_teacher=False, include_menu=True):
     return text, markup
 
 
-def cmd_docs(include_menu=True):
-    text = L10n.get('docs')
+def cmd_student_cert(include_menu=True):
+    text = L10n.get('student_cert')
 
     markup = InlineKeyboardMarkup()
-    markup.row(InlineKeyboardButton(L10n.get('docs.student_proof'), callback_data='docs=student_proof'))
+    markup.row(InlineKeyboardButton(L10n.get('student_cert.button'), url=L10n.get('student_cert.button.link')))
 
     if include_menu:
         markup.row(

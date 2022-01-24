@@ -588,10 +588,17 @@ def schedule_by_teacher_start(message, origin_call=None):
 
 @bot.message_handler(regexp='справка')
 @bot.message_handler(commands=['spravka', 'справка'])
-def docs(message):
-	text, markup = cmd_docs(include_menu=False)
+def student_cert(message):
+	text, markup = cmd_student_cert(include_menu=False)
 
 	bot.send_message(message.chat.id, text, reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda call: call.parsed_data.get('student_cert'))
+def callback_query_student_cert(call):
+	text, markup = cmd_student_cert(include_menu=True)
+
+	bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
 
 
 @bot.message_handler(commands=['зп', 'zp'])
@@ -677,17 +684,6 @@ def zp_pdf_gen(message):
 	with open(pdf_file, 'rb') as f:
 		bot.send_document(message.chat.id, data=f)
 		f.close()
-
-
-@bot.callback_query_handler(func=lambda call: call.parsed_data.get('docs'))
-def callback_query_docs(call):
-	docs = call.parsed_data.get('docs', None)
-
-	text = docs
-	markup = get_menu_markup()
-
-	bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
-
 
 @bot.callback_query_handler(func=lambda call: call.parsed_data.get('faq') is not None)
 def callback_query_faq(call):

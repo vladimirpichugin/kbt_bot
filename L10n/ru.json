@@ -3,7 +3,7 @@
     "start.menu": "Воспользуйтесь кнопками, чтобы использовать нужную команду.",
     "start.profile": "\n\nСтудент: <b>{name}</b>\nГруппа: <b>{group}</b>",
     "start.button.schedule": "Расписание",
-    "start.button.docs.student_proof": "Справка об обучении",
+    "start.button.student_cert": "Справка об обучении",
     "start.button.contacts": "Контакты",
     "start.button.abiturient": "Абитуриентам",
     "start.button.staff": "Преподаватели и сотрудники",
@@ -112,8 +112,9 @@
     "auth.students": "🔑 Войдите через ВКонтакте.",
     "auth.students.button": "🔑 Войти",
 
-    "docs": "Выберите тип справки.",
-    "docs.student_proof": "Справка об обучении",
+    "student_cert": "Справку об обучении можно заказать через форму.",
+    "student_cert.button": "Открыть форму",
+    "student_cert.button.link": "https://docs.google.com/forms/d/e/1FAIpQLSc5i-XLqeUafJZdPgfWcqMDBLbw-FvqOWKnwM82DhD0rM2GaQ/viewform",
 
     "error.callback_query": "&#10071; Возникла ошибка, попробуйте еще раз.",
 
