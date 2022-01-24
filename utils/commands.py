@@ -206,7 +206,7 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
                 lesson.append(info)
 
             lesson = '\n'.join(lesson)
-            lesson_text = lesson_text.format(l_id, l_time, lesson)
+            lesson_text = lesson_text.format(l_id=l_id, l_time=l_time, lesson=lesson)
 
             lessons_text.append(lesson_text)
 
@@ -297,7 +297,7 @@ def cmd_schedule_teacher(schedule, teacher, subscribe_schedule_teachers, day, in
                 lesson.append(room)
 
             lesson = '\n'.join(lesson)
-            lesson_text = lesson_text.format(l_id, l_time, schedule_group_name, name, lesson)
+            lesson_text = lesson_text.format(l_id=l_id, l_time=l_time, group_name=schedule_group_name, lesson=name, info=lesson)
 
             lessons_items.append((lesson_text, l_id))
 
