@@ -33,7 +33,7 @@
     "schedule.subscribe.button": "Подписаться на «{group_name}»",
     "schedule.unsubscribe.button": "Отписаться от «{group_name}»",
     "schedule.open_site.button": "Сайт",
-    "schedule.by_teacher.button": "Указать преподавателя",
+    "schedule.by_teacher.button": "По преподавателю",
     "schedule.by_teacher": "Чтобы подписаться на расписание преподавателя, отправьте <b>фамилию и инициалы</b>, как в расписании.\nПример: <b>Иванов И И</b>",
     "schedule.by_teacher.cancel": "Поиск преподавателя по фамилии отменён.",
     "schedule.by_teacher.cancel.button": "Отмена",
@@ -98,7 +98,7 @@
     "faq.12.q": "Как узнать, поступил(а) я или нет?",
     "faq.12.a": "В период с 01 июля по 25 августа на сайте колледже в разделе \"Приемная комиссия\" публикуются данные по среднему баллу аттестата абитуриентов. Эти данные могут помочь Вам спрогнозировать вероятность поступления на бюджетное место по выбранной специальности.",
 
-    "abiturient": "Абитуриенту.",
+    "abiturient": "Абитуриентам.",
     "abiturient.button.faq": "Ответы на частые вопросы",
     "abiturient.1.button": "на базе 9 классов",
     "abiturient.1.button.link": "https://cbcol.mskobr.ru/abiturientam/spetsialnosti-na-baze-9-klassov?utm_source=telegram_bot&utm_medium=MosKBT_BOT",
