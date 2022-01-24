@@ -594,7 +594,7 @@ def docs(message):
 	bot.send_message(message.chat.id, text, reply_markup=markup)
 
 
-@bot.message_handler(commands=['зп'])
+@bot.message_handler(commands=['зп', 'zp'])
 def zp_pdf_gen(message):
 	client = message.client
 	text = message.text
@@ -620,7 +620,7 @@ def zp_pdf_gen(message):
 		people = int(args[3])
 	except Exception:
 		logger.error('error', exc_info=True)
-		bot.send_message(message.chat.id, 'Ошибка в аргументах.\nПример для заявки с 29 ноября по 3 декабря на 7 человек: <code>/зп 29.11.2021 03.12.2021 7</code>\n\nЗапомнить группу и ФИО: <code>/зп запомни И32-19 Романова Н. С.</code>')
+		bot.send_message(message.chat.id, 'Например, для заявки с 24 по 28 января на 10 человек: <code>/зп 24.01.22 28.01.22 10</code>\n\nЗапомнить группу и ФИО: <code>/зп запомни И32-19 Романова Н. С.</code>')
 		return False
 
 	body = [
