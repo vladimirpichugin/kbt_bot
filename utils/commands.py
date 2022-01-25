@@ -75,9 +75,9 @@ def cmd_schedule(faculty=None, include_teacher=False, include_menu=True):
     if faculty:
         groups = Settings.GROUPS.get(faculty).get('GROUPS')
 
-        for _ in range(0, len(groups), 4):
+        for _ in range(0, len(groups), 3):
             buttons = [InlineKeyboardButton(group_name, callback_data='group_name={}'.format(group_name)) for group_name in
-                       groups[_:_ + 4]]
+                       groups[_:_ + 3]]
             markup.row(*buttons)
 
         markup.row(
