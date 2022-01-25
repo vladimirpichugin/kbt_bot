@@ -260,20 +260,6 @@ def middleware_handler_callback_query(bot_instance, call):
 			break
 
 
-@bot.message_handler(commands=['start', 'старт'])
-def start(message):
-	text, markup = cmd_start()
-	text += '\n\n' + L10n.get('start.menu')
-	bot.send_message(message.chat.id, text, reply_markup=markup)
-
-
-@bot.message_handler(commands=['menu', 'меню'])
-def menu(message):
-	text, markup = cmd_start()
-	text = L10n.get('start.menu')
-	bot.send_message(message.chat.id, text, reply_markup=markup)
-
-
 @bot.callback_query_handler(func=lambda call: call.parsed_data.get('menu'))
 def callback_query_menu(call):
 	text, markup = cmd_start()
@@ -283,6 +269,7 @@ def callback_query_menu(call):
 
 @bot.message_handler(regexp='расписание')
 @bot.message_handler(commands=['raspisanie', 'расписание'])
+@bot.message_handler(func=lambda message: message.text_args == 'raspisanie')
 def schedule(message):
 	client = message.client
 	subscribe_groups = client.get('schedule_groups', [])
@@ -799,6 +786,18 @@ def callback_query_contact(message):
 		text, markup = cmd_auth(message.chat.id)
 
 		bot.send_message(message.chat.id, text, reply_markup=markup)
+
+
+@bot.message_handler(commands=['start', 'menu', 'старт', 'меню'])
+def welcome(message):
+	text, markup = cmd_start()
+
+	if message.cmd in ['start', 'старт']:
+		text += '\n\n' + L10n.get('start.menu')
+	else:
+		text = L10n.get('start.menu')
+
+	bot.send_message(message.chat.id, text, reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: True)
