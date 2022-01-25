@@ -216,7 +216,7 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
 
         text += L10n.get('schedule.body').format(
             group_name=group_name,
-            room=room,
+            room=room if room else '',
             lessons=lessons_text
         )
     else:
