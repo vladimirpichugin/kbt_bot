@@ -21,7 +21,7 @@ class Storage:
         data = self.get_data(self.clients, user.id)
 
         if not data:
-            logger.debug(f'User <{user.id}:{user.username}> not found.')
+            #logger.debug(f'User <{user.id}:{user.username}> not found.')
             data = SDict({'_id': user.id})
 
         client = Client(data)
@@ -53,13 +53,13 @@ class Storage:
             logger.debug(f'Client <{user.id}:{user.username}> already saved, data not changed.')
             return True
 
-        save = self.save_data(self.clients, user.id, client)
+        save_result = self.save_data(self.clients, user.id, client)
 
-        if save:
-            logger.debug(f'Client <{user.id}:{user.username}> saved, result: {save}')
+        if save_result:
+            logger.debug(f'Client <{user.id}:{user.username}> saved, result: {save_result.raw_result}')
             return True
 
-        logger.error(f'Client <{user.id}:{user.username}> not saved, result: {save}')
+        logger.error(f'Client <{user.id}:{user.username}> not saved, result: {save_result.raw_result}')
 
         return False
 
@@ -73,13 +73,13 @@ class Storage:
 
         schedule['timestamp'] = int(datetime.datetime.now().timestamp())
 
-        save = self.save_data(self.schedule, _id, schedule)
+        save_result = self.save_data(self.schedule, _id, schedule)
 
-        if save:
-            logger.debug(f'Schedule <{_id}> saved, result: {save}')
+        if save_result:
+            logger.debug(f'Schedule <{_id}> saved, result: {save_result.raw_result}')
             return True
 
-        logger.error(f'Schedule <{_id}> not saved, result: {save}')
+        logger.error(f'Schedule <{_id}> not saved, result: {save_result.raw_result}')
 
         return False
 
