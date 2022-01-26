@@ -97,15 +97,16 @@ class CollegeScheduleGrabber:
                         if regex_head:
                             lessons = []
                             for i in range(1, 5):
-                                lessons.append(tr_all[line_id + i].find_all("td")[c_r_i].text.replace(u'\xa0', ''))
+                                lesson = tr_all[line_id + i].find_all("td")[c_r_i].text
+                                lesson = re.sub('[\n\r\xa0]', ' ', lesson)
+                                lesson = lesson.strip()
+                                lessons.append(lesson)
 
                             lessons = CollegeScheduleAbc.parse_lessons(lessons)
 
                             room = regex_head.group('r') or ''
-                            room = room.lower().replace('\n', '').strip()
-
-                            if room in ['ауд.']:
-                                room = None
+                            if room:
+                                room = CollegeScheduleAbc.find_room(room)
 
                             schedule_group = {
                                 'info': {
@@ -129,31 +130,47 @@ class CollegeScheduleGrabber:
 class CollegeScheduleAbc:
     @staticmethod
     def parse_lessons(lessons_raw: list):
-        pattern = re.compile(r'(?P<name>[А-Яа-я\-\. ]+)\s(?P<teacher>(?P<last_name>[А-Яа-я\-]+)[ ]?(?P<first_name>[А-Яа-я]+)?(\.)?[ ]?((?P<middle_name>[А-Яа-я]+)(\.)?))\s(?P<info>[А-Яа-я0-9\-\.\s]+)',
-                             flags=re.IGNORECASE)
+        pattern = re.compile(r'(?P<l>[А-Яа-яЁё]+) (?P<f>[А-Яа-яЁё])\. ?(?P<m>[А-Яа-яЁё])\.?')
 
         lessons = []
         for lesson_id, lesson_raw in enumerate(lessons_raw):
-            r = re.search(pattern, lesson_raw)
+            r = pattern.search(lesson_raw)
 
             if not r:
                 continue
 
-            info = r.group('info') or ''
-            info = info.lower().replace('\n', '').strip()
+            name = None
+            info = None
+            teacher = {}
 
-            if 'ауд' in info:
-                info = None
+            try:
+                name = lesson_raw[:r.start()].strip()
+                info = lesson_raw[r.end():].strip()
+
+                info = CollegeScheduleAbc.find_room(info)
+
+                teacher_last_name = r.group('l').lower().title()
+                teacher_first_name = r.group('f').upper()
+                teacher_middle_name = r.group('m').upper()
+
+                teacher_full_name = '{} {}. {}.'.format(
+                    teacher_last_name, teacher_first_name, teacher_middle_name
+                )
+
+                teacher = {
+                    "full_name": teacher_full_name,
+                    "last_name": teacher_last_name,
+                    "first_name": teacher_first_name,
+                    "middle_name": teacher_middle_name
+                }
+            except:
+                logger.error(lesson_raw)
+                logger.error('Parse lesson error:', exc_info=True)
 
             lesson = {
                 "id": lesson_id+1,
-                "name": r.group('name'),
-                "teacher": {
-                    "full_name": r.group('teacher'),
-                    "last_name": r.group('last_name'),
-                    "first_name": r.group('first_name'),
-                    "middle_name": r.group('middle_name')
-                },
+                "name": name if name else lesson_raw,
+                "teacher": teacher,
                 "info": info,
                 "raw": lesson_raw
             }
@@ -215,3 +232,21 @@ class CollegeScheduleAbc:
             return dt + datetime.timedelta(days=-dt.weekday(), weeks=1)
 
         return dt
+
+    @staticmethod
+    def find_room(info):
+        info = info.lower()
+
+        pattern_info = re.compile(r'[ауд]{3}(?:[\.]+)? ?(?P<room>[0-9а-я]+)?')
+        info_r = pattern_info.search(info)
+
+        if info and info_r:
+            room = info_r.group('room')
+            info = "Ауд. {}".format(room) if room else None
+        elif 'спорт' in info:
+            info = 'Спортивный зал'
+        else:
+            info = info.replace('.', '')
+            info = info.title()
+
+        return info
