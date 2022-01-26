@@ -56,10 +56,10 @@ class Storage:
         save_result = self.save_data(self.clients, user.id, client)
 
         if save_result:
-            logger.debug(f'Client <{user.id}:{user.username}> saved, result: {save_result.raw_result}')
+            logger.debug(f'Client <{user.id}:{user.username}> saved, result: {save_result}')
             return True
 
-        logger.error(f'Client <{user.id}:{user.username}> not saved, result: {save_result.raw_result}')
+        logger.error(f'Client <{user.id}:{user.username}> not saved, result: {save_result}')
 
         return False
 
@@ -74,12 +74,11 @@ class Storage:
         schedule['timestamp'] = int(datetime.datetime.now().timestamp())
 
         save_result = self.save_data(self.schedule, _id, schedule)
-
         if save_result:
-            logger.debug(f'Schedule <{_id}> saved, result: {save_result.raw_result}')
+            logger.debug(f'Schedule <{_id}> saved, result: {save_result}')
             return True
 
-        logger.error(f'Schedule <{_id}> not saved, result: {save_result.raw_result}')
+        logger.error(f'Schedule <{_id}> not saved, result: {save_result}')
 
         return False
 
@@ -95,6 +94,10 @@ class Storage:
     @staticmethod
     def save_data(c: pymongo.collection.Collection, value, data: SDict, name="_id"):
         if c.find_one({name: value}):
-            return c.update_one({name: value}, {"$set": data})
+            operation = c.update_one({name: value}, {"$set": data})
+            result = operation.raw_result if operation else None
         else:
-            return c.insert_one(data)
+            operation = c.insert_one(data)
+            result = operation.inserted_id if operation else None
+
+        return result
