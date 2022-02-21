@@ -183,7 +183,13 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
             lesson_text = L10n.get('schedule.body.lesson')
 
             l_id = int(l.get('id'))
-            l_time = group_time[l_id - 1]
+
+            time_position = l_id - 1
+            if len(group_time) >= l_id:
+                l_time = group_time[time_position]
+            else:
+                l_time = ''
+
             name = l.get('name')
             teacher = l.get('teacher', {}).get('full_name')
             info = l.get('info')
@@ -272,7 +278,13 @@ def cmd_schedule_teacher(schedule, teacher, subscribe_schedule_teachers, day, in
             lesson_text = L10n.get('schedule.by_teacher.body.lesson')
 
             l_id = int(l.get('id'))
-            l_time = schedule_group_time[l_id - 1]
+
+            time_position = l_id - 1
+            if len(schedule_group_time) >= l_id:
+                l_time = schedule_group_time[time_position]
+            else:
+                l_time = ''
+
             name = l.get('name')
             info = l.get('info')
             raw = l.get('raw')
