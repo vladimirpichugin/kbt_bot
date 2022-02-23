@@ -6,15 +6,11 @@ import re
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from operator import itemgetter
 
-from .helpers import init_logger, get_fast_auth_url
-from .json import Json
+from utils import get_fast_auth_url
 
 from settings import Settings
 
-logger = init_logger()
-
-logger.info("Initializing localization..")
-L10n = Json(Settings.L10N_RU_FILE)
+from localization import L10n
 
 
 def cmd_start():

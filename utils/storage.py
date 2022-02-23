@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 # Author: Vladimir Pichugin <vladimir@pichug.in>
 import pymongo
+import datetime
 from telebot.types import User
 
-from .data import *
-from .helpers import init_logger
-
-
-logger = init_logger()
+from utils import logger
+from utils.data import *
 
 
 class Storage:

@@ -2,9 +2,7 @@
 # Author: Vladimir Pichugin <vladimir@pichug.in>
 import json
 
-from .helpers import init_logger
-
-logger = init_logger()
+from utils import logger
 
 
 class Json:
@@ -18,7 +16,7 @@ class Json:
         with open(self.file, encoding='utf-8') as data:
             try:
                 parsed = json.load(data)
-            except Exception:
+            except:
                 logger.error('Error parsing {0} as JSON'.format(self.file), exc_info=True)
                 parsed = {}
 

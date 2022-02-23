@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: Vladimir Pichugin <vladimir@pichug.in>
-import datetime
+
 
 class SDict(dict):
     def __init__(self, *args, **kwargs):

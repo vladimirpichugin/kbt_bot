@@ -29,4 +29,5 @@ venv/
 settings.py
 .handler-saves
 logs/
-assets/DejaVuSansCondensed.ttf
+assets/DejaVuSansCondensed.*
+share/
