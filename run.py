@@ -14,12 +14,6 @@ if __name__ == "__main__":
     thread_bot.daemon = True
     thread_bot.start()
 
-    bot.logger.debug("Initializing schedule polling..")
-    thread_schedule = threading.Thread(target=bot.schedule_polling)
-    thread_schedule.setName('ScheduleThread')
-    thread_schedule.daemon = True
-    thread_schedule.start()
-
     console_thread = threading.Thread(target=bot.console)
     console_thread.setName('ConsoleThread')
     console_thread.daemon = True

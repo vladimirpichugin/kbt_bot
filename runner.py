@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# Author: Vladimir Pichugin <code@pichug.in>
-
+# Author: Vladimir Pichugin <vladimir@pichug.in>
 import subprocess
 import logging
 import signal
@@ -9,15 +8,15 @@ import os
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG,
-        format=u'>> [%(asctime)s] %(message)s',
-        datefmt='%y.%m.%d %H:%M:%S')
+                        format=u'>> [%(asctime)s] %(message)s',
+                        datefmt='%y.%m.%d %H:%M:%S')
 
     cmd = "python3.6 -u run.py"
     p = None
 
     try:
         while True:
-            logging.info(f"Running programm (\"{cmd}\").")
+            logging.info(f"Running program (\"{cmd}\").")
 
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
 
@@ -26,17 +25,16 @@ if __name__ == "__main__":
 
             try:
                 os.killpg(os.getpgid(p.pid), signal.SIGTERM)
-            except Exception:
+            except:
                 import traceback
                 traceback.print_exc()
 
-            logging.info("Programm died.")
+            logging.info("Program died.")
 
     except (KeyboardInterrupt, SystemExit):
         try:
             os.killpg(os.getpgid(p.pid), signal.SIGTERM)
-
-        except Exception:
+        except:
             import traceback
             traceback.print_exc()
 

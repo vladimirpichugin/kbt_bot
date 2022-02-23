@@ -61,43 +61,6 @@ def bot_polling():
 		logger.error('Bot polling loop crashed', exc_info=True)
 
 
-def schedule_polling():
-	try:
-		t = Settings.SCHEDULE_TIME
-		g = CollegeScheduleGrabber(Settings.DOMAIN, Settings.BLOG_PATH)
-
-		while True:
-			try:
-				today = datetime.datetime.today()
-				today = today.replace(hour=0, minute=0, second=0, microsecond=0)
-
-				articles = g.parse_articles()
-
-				if not articles:
-					time.sleep(t)
-					continue
-
-				articles = CollegeScheduleAbc.get_articles(articles)
-
-				for article in articles:
-					article_date = article.get('date')
-					article_path = article.get('link')
-
-					if not article_date:
-						continue
-
-					if article_date >= today:
-						article_groups = g.parse_article(article_path)
-						article['data'] = article_groups
-						storage.save_schedule(article)
-			except:
-				logger.error('Exception in schedule polling loop', exc_info=True)
-
-			time.sleep(t)
-	except:
-		logger.error('Schedule polling loop crashed', exc_info=True)
-
-
 def schedule_notify(notify_teachers=False, next_day=True):
 	t = Settings.SCHEDULE_NOTIFY_PAUSE_TIME
 
@@ -113,7 +76,7 @@ def schedule_notify(notify_teachers=False, next_day=True):
 			logger.error(f'Рассылка отменена, позже 11 часов рассылка не отправляется.')
 			break  # Fail.
 
-		day = CollegeScheduleAbc.get_weekday(next_day=next_day)
+		day = get_weekday(next_day=next_day)
 
 		schedule = storage.get_schedule(date=day)
 		if not schedule:
@@ -283,7 +246,7 @@ def schedule(message):
 	group_name = subscribe_groups[0] if subscribe_groups else None
 	teacher = subscribe_teachers[0] if subscribe_teachers else None
 
-	day = CollegeScheduleAbc.get_weekday()
+	day = get_weekday()
 	schedule = storage.get_schedule(date=day)
 	if not schedule:
 		text = L10n.get('schedule.not_found').format(date=day.strftime('%d.%m.%y'))
@@ -399,7 +362,7 @@ def callback_query_schedule(call):
 
 		return False
 
-	day = CollegeScheduleAbc.get_weekday()
+	day = get_weekday()
 	schedule = storage.get_schedule(date=day)
 	if not schedule:
 		text = L10n.get('schedule.not_found').format(date=day.strftime('%d.%m.%y'))
@@ -471,7 +434,7 @@ def callback_query_schedule_by_teacher(call):
 	if client.get('schedule_teachers'):
 		teacher = client.get('schedule_teachers', [])[0]
 
-		day = CollegeScheduleAbc.get_weekday(next_day=False)
+		day = get_weekday(next_day=False)
 		schedule = storage.get_schedule(date=day)
 		if not schedule:
 			text = L10n.get('schedule.not_found').format(date=day.strftime('%d.%m.%y'))
@@ -552,7 +515,7 @@ def schedule_by_teacher_start(message, origin_call=None):
 	client['schedule_teachers'] = [teacher]
 	storage.save_client(message.from_user, client)
 
-	day = CollegeScheduleAbc.get_weekday(next_day=False)
+	day = get_weekday(next_day=False)
 	schedule = storage.get_schedule(date=day)
 
 	text, _ = cmd_schedule_teacher(schedule, teacher, [], day, include_back_button=False)

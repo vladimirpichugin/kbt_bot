@@ -6,6 +6,7 @@ import logging
 import inspect
 import re
 import time
+import datetime
 import hashlib
 
 from settings import Settings
@@ -61,6 +62,21 @@ def get_logger_stream_handler():
     stream_handler.setFormatter(get_logger_formatter(u'[%(asctime)s] %(levelname)-6s %(threadName)-14s: %(message)s'))
 
     return stream_handler
+
+
+def get_weekday(next_day=False):
+    dt = datetime.datetime.today()
+
+    if dt.isoweekday() < 5 and (dt.hour >= 17 or next_day):
+        return dt + datetime.timedelta(days=1)
+
+    if dt.isoweekday() == 5 and (dt.hour >= 17 or next_day):
+        return dt + datetime.timedelta(days=-dt.weekday(), weeks=1)
+
+    if dt.isoweekday() > 5:
+        return dt + datetime.timedelta(days=-dt.weekday(), weeks=1)
+
+    return dt
 
 
 def get_phone(string):

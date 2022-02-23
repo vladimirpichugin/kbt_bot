@@ -1,6 +1,4 @@
-beautifulsoup4
 schedule
-requests
 pyTelegramBotAPI==4.2.2
 pymongo
 fpdf==1.7.2

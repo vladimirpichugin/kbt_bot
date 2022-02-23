@@ -3,6 +3,5 @@
 from .helpers import *
 from .storage import *
 from .data import *
-from .schedule import *
 from .json import *
 from .commands import *
