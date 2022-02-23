@@ -788,7 +788,7 @@ def callback_query_contact(message):
 		bot.send_message(message.chat.id, text, reply_markup=markup)
 
 
-@bot.message_handler(commands=['start', 'menu', 'старт', 'меню'])
+@bot.message_handler(commands=['start', 'menu', 'старт', 'меню', 'help'])
 def welcome(message):
 	text, markup = cmd_start()
 
