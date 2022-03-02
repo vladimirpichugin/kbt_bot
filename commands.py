@@ -167,7 +167,10 @@ def cmd_schedule_group(schedule, group_name, subscribe_schedule_groups, day, inc
 
         schedule_group_name = info.get('group').get('name')
         room = info.get('room')
+
         group_time = info.get('time')
+        if not any(group_time):
+            group_time = Settings.BELL_SCHEDULE_DEFAULT
 
         if schedule_group_name != group_name:
             continue
@@ -264,7 +267,11 @@ def cmd_schedule_teacher(schedule, teacher, subscribe_schedule_teachers, day, in
         lessons = schedule_group.get('lessons', [])
 
         schedule_group_name = info.get('group').get('name')
+
         schedule_group_time = info.get('time')
+        if not any(schedule_group_time):
+            schedule_group_time = Settings.BELL_SCHEDULE_DEFAULT
+
         room = info.get('room')
 
         if not any(lessons):

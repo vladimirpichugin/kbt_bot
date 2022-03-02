@@ -30,3 +30,7 @@ class Settings:
 
     GROUPS = {
     }
+
+    BELL_SCHEDULE_DEFAULT = [
+    ]
+
