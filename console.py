@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # Author: Vladimir Pichugin <vladimir@pichug.in>
-import main
+import datetime
 
+import main
 from utils import logger
 
 
@@ -29,7 +30,7 @@ def console_thread():
 
 def console_cmd_notify(cmd_args):
     if len(cmd_args) != 3:
-        logger.info("notify <type: students|teachers> <next day: true|false>")
+        logger.info("notify <type: students|teachers> <date: dd-mm-yyyy or empty>")
         return
 
     notify_type = cmd_args[1]
@@ -38,6 +39,15 @@ def console_cmd_notify(cmd_args):
         return
 
     teachers = True if cmd_args[1] == "teachers" else False
-    next_day = True if cmd_args[2] else False
+    date = cmd_args[2] if len(cmd_args) == 3 else None
 
-    main.notify(teachers=teachers, next_day=next_day)
+    try:
+        date = datetime.datetime.strptime(date, '%d-%m-%Y')
+    except:
+        logger.error("Error in date", exc_info=True)
+        return
+
+    main.notify(
+        teachers=teachers,
+        date=date
+    )

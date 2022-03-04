@@ -11,22 +11,17 @@ from commands import cmd_schedule_teacher, cmd_schedule_group
 from settings import Settings
 
 
-def notify(teachers=False, next_day=True):
+def notify(teachers=False, next_day=True, date=None):
     t = Settings.SCHEDULE_NOTIFY_PAUSE_TIME
 
     while True:
         today = datetime.datetime.today()
 
-        # todo: А если в пятницу расписание не опубликовали?
-        if today.isoweekday() >= 6:
-            logger.info(f'Рассылка отменена, по выходным рассылка не отправляется.')
-            break  # Ok.
-
         if today.hour >= 23:
             logger.error(f'Рассылка отменена, позже 11 часов рассылка не отправляется.')
             break  # Fail.
 
-        day = get_weekday(next_day=next_day)
+        day = date if date else get_weekday(next_day=next_day)
 
         schedule = main.storage.get_schedule(date=day)
         if not schedule:
@@ -78,9 +73,23 @@ def notify(teachers=False, next_day=True):
         break  # OK.
 
 
-def notify_students(next_day=True):
-    notify(teachers=False, next_day=next_day)
+def notify_students():
+    today = datetime.datetime.today()
+
+    # todo: А если в пятницу расписание не опубликовали?
+    if today.isoweekday() >= 6:
+        logger.info(f'Рассылка отменена, по выходным рассылка не отправляется.')
+        return
+
+    notify(teachers=False, next_day=True)
 
 
-def notify_teachers(next_day=True):
-    notify(teachers=True, next_day=next_day)
+def notify_teachers():
+    today = datetime.datetime.today()
+
+    # todo: А если в пятницу расписание не опубликовали?
+    if today.isoweekday() >= 6:
+        logger.info(f'Рассылка отменена, по выходным рассылка не отправляется.')
+        return
+
+    notify(teachers=True, next_day=True)
