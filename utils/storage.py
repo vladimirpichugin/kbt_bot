@@ -14,6 +14,7 @@ class Storage:
         self.db = self.mongo_client.get_database(database)
         self.clients = self.db.get_collection(collections.get('clients'))
         self.schedule = self.db.get_collection(collections.get('schedule'))
+        self.students = self.db.get_collection(collections.get('students'))
 
     def get_client(self, user: User) -> Client:
         data = self.get_data(self.clients, user.id)
@@ -34,6 +35,14 @@ class Storage:
             clients.append(Client(_))
 
         return clients
+
+    def get_student_data_by_phone_number(self, phone):
+        data = self.get_data(self.students, phone, 'phone')
+
+        if not data:
+            return None
+
+        return data
 
     def get_schedule(self, date: datetime.datetime):
         key = date.strftime('%d-%m-%y')
