@@ -38,7 +38,7 @@ def get_phone(string):
     return None
 
 
-def get_fast_auth_url(uid):
+def get_fast_auth_url(uid, act):
     url = Settings.AUTH_URL
     date = int(time.time())
 
@@ -46,6 +46,6 @@ def get_fast_auth_url(uid):
     a_hash = a_hash.encode('utf-8')
     a_hash = hashlib.sha256(a_hash).hexdigest()
 
-    url = url.format(hash=a_hash, uid=uid, d=date, s=Settings.AUTH_SERVICE)
+    url = url.format(act=act, hash=a_hash, uid=uid, d=date, s=Settings.AUTH_SERVICE)
 
     return url
