@@ -6,7 +6,7 @@ class Settings:
     DEBUG = True
     DEBUG_TELEBOT = False
 
-    AUTH_URL = 'https://pichugin.life/api/login?hash={hash}&uid={uid}&d={d}&s={s}&role=integration&v=1'
+    AUTH_URL = 'https://kbt.moscow/profile?act={act}&role=fast-auth&uid={uid}&hash={hash}&d={d}&s={s}&v=1'
     AUTH_SERVICE = ''
     AUTH_SERVICE_PUB_KEY = ''
 
