@@ -478,6 +478,11 @@ def callback_query_contacts(call):
         markup = InlineKeyboardMarkup()
 
         markup.row(
+            InlineKeyboardButton(L10n.get('contacts.social_networks.website.button'),
+                                 url=L10n.get('contacts.social_networks.website.button.link'))
+        )
+
+        markup.row(
             InlineKeyboardButton(L10n.get('contacts.social_networks.vk.button'),
                                  url=L10n.get('contacts.social_networks.vk.button.link')),
             InlineKeyboardButton(L10n.get('contacts.social_networks.facebook.button'),
