@@ -20,7 +20,8 @@ class Settings:
     MONGO_DATABASE = ''
     COLLECTIONS = {
         'clients': 'clients',
-        'schedule': 'schedule'
+        'schedule': 'schedule',
+        'students': 'students'
     }
 
     SCHEDULE_NOTIFY_START_TIME = '10:00'  # Начнется проверка на наличие расписания для рассылки.
