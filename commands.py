@@ -38,6 +38,10 @@ def cmd_start():
         InlineKeyboardButton(L10n.get('start.button.contacts'), callback_data='contacts=y')
     )
 
+    markup.row(
+        InlineKeyboardButton(L10n.get('start.button.about_bot'), callback_data='about_bot=y')
+    )
+
     return text, markup
 
 
@@ -388,6 +392,16 @@ def cmd_auth(uid):
     markup.row(
         InlineKeyboardButton(L10n.get('auth.students.button'), url=auth_url)
     )
+
+    return text, markup
+
+
+def cmd_about_bot():
+    text = L10n.get('about_bot')
+
+    markup = InlineKeyboardMarkup()
+    markup.row(InlineKeyboardButton(L10n.get('about_bot.button'), url=L10n.get('about_bot.button.link')))
+    markup.row(InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y'))
 
     return text, markup
 

@@ -10,6 +10,7 @@
     "start.button.website": "Веб-сайт",
     "start.button.website.link": "https://cbcol.mskobr.ru?utm_source=telegram_bot&utm_medium=MosKBT_BOT",
     "start.button.social_networks": "Соц. сети",
+    "start.button.about_bot": "О боте",
 
     "menu.button": "<< Меню",
     "back.button": "<< Назад",
@@ -129,5 +130,9 @@
     "months.September": "сентября",
     "months.October": "октября",
     "months.November": "ноября",
-    "months.December": "декабря"
+    "months.December": "декабря",
+
+    "about_bot": "Бот разработан студентом КБТ.\n\nИсходный код опубликован в GitHub репозитории.\n\nЕсть идея или заметили ошибку? Напишите на почту: dev@kbt.moscow",
+    "about_bot.button": "Репозиторий GitHub",
+    "about_bot.button.link": "https://github.com/vladimirpichugin/kbt_bot"
 }

@@ -538,15 +538,11 @@ def auth(message):
 def callback_query_auth(call):
     client = call.client
 
-    if not client.get('phone_number'):
-        text = L10n.get('auth.students')
 
-        markup = ReplyKeyboardMarkup(one_time_keyboard=True)
-        markup.add(KeyboardButton(text=L10n.get('auth.students.button'), request_contact=True))
-    else:
-        text, markup = cmd_auth(call.message.chat.id)
-
-    bot.send_message(call.message.chat.id, text, reply_markup=markup)
+@bot.callback_query_handler(func=lambda call: call.parsed_data.get('about_bot') is True)
+def callback_query_about_bot(call):
+    text, markup = cmd_about_bot()
+    bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
 
 
 @bot.message_handler(content_types=['contact'])
