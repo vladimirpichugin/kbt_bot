@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 # Author: Vladimir Pichugin <vladimir@pichug.in>
+import datetime
+import dateutil.parser
+
+from bson.objectid import ObjectId
 
 
 class SDict(dict):
@@ -41,11 +45,28 @@ class Client(SDict):
         super().__init__(*args, **kwargs)
 
         self.id = self.getraw('_id')
-        self.is_admin = self.getraw('is_admin', False)
-        self.is_staff = self.getraw('is_staff', False)
+        self.is_admin = self.getraw('admin', False)
+        self.is_staff = self.getraw('staff', False)
 
     def get_id(self) -> int:
         return self.id
+
+    @staticmethod
+    def create(data):
+        return Client(data)
+
+
+class ScheduleArticle(SDict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class Student(SDict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_id(self) -> ObjectId:
+        return self.getraw('_id')
 
     def get_name(self, include_middle_name=False) -> str:
         name = []
@@ -62,11 +83,23 @@ class Client(SDict):
 
         return ''
 
-    @staticmethod
-    def create(data):
-        return Client(data)
+    def get_age(self) -> int:
+        birth_date = self._decode_birth_date()
 
+        if not birth_date:
+            return 0
 
-class ScheduleArticle(SDict):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        today = datetime.date.today()
+
+        return (today.year - birth_date.year -
+                ((today.month, today.day) <
+                 (birth_date.month,
+                  birth_date.day)))
+
+    def _decode_birth_date(self):
+        birth_date = self.getraw('birth_date')
+
+        if not birth_date:
+            return None
+
+        return dateutil.parser.parse(birth_date)

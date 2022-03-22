@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Author: Vladimir Pichugin <vladimir@pichug.in>
 import pymongo
+from bson.objectid import ObjectId
 import datetime
 from telebot.types import User
 
@@ -42,7 +43,20 @@ class Storage:
         if not data:
             return None
 
-        return data
+        student = Student(data)
+
+        return student
+
+    def get_student_by_id(self, sid):
+        key = ObjectId(sid)
+
+        data = self.get_data(self.students, key)
+        if not data:
+            return None
+
+        student = Student(data)
+
+        return student
 
     def get_schedule(self, date: datetime.datetime):
         key = date.strftime('%d-%m-%y')
@@ -67,6 +81,21 @@ class Storage:
             return True
 
         logger.error(f'Client <{user.id}:{user.username}> not saved, result: {save_result}')
+
+        return False
+
+    def save_student(self, student: Student) -> bool:
+        if not student.changed:
+            logger.debug(f'Student <{student.get_id()}:{student.get_name(False)}> already saved, data not changed.')
+            return True
+
+        save_result = self.save_data(self.students, student.get_id(), student)
+
+        if save_result:
+            logger.debug(f'Student <{student.get_id()}:{student.get_name(False)}> saved, result: {save_result}')
+            return True
+
+        logger.error(f'Student <{student.get_id()}:{student.get_name(False)}> not saved, result: {save_result}')
 
         return False
 
