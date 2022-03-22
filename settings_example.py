@@ -21,7 +21,9 @@ class Settings:
     COLLECTIONS = {
         'clients': 'clients_test',
         'schedule': 'schedule',
-        'students': 'students'
+        'students': 'students',
+        'groups': 'groups',
+        'specialties': 'specialties'
     }
 
     SCHEDULE_NOTIFY_START_TIME = '10:00'  # Начнется проверка на наличие расписания для рассылки.

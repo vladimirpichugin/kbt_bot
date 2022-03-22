@@ -90,7 +90,7 @@ def middleware_handler_callback_query(bot_instance, call):
     call.parsed_data = parsed_data
 
     # Подгружаем клиента только при появлении аргументов.
-    cmds = ['group_name', 'faculty', 'teacher', 'schedule']
+    cmds = ['group_name', 'faculty', 'teacher', 'schedule', 'profile']
 
     for cmd in cmds:
         if cmd in parsed_data:
@@ -485,17 +485,8 @@ def callback_query_contacts(call):
         markup.row(
             InlineKeyboardButton(L10n.get('contacts.social_networks.vk.button'),
                                  url=L10n.get('contacts.social_networks.vk.button.link')),
-            InlineKeyboardButton(L10n.get('contacts.social_networks.facebook.button'),
-                                 url=L10n.get('contacts.social_networks.facebook.button.link')),
-            InlineKeyboardButton(L10n.get('contacts.social_networks.instagram.button'),
-                                 url=L10n.get('contacts.social_networks.instagram.button.link')),
             InlineKeyboardButton(L10n.get('contacts.social_networks.telegram.button'),
                                  url=L10n.get('contacts.social_networks.telegram.button.link'))
-        )
-
-        markup.row(
-            InlineKeyboardButton(L10n.get('contacts.social_networks.website.button'),
-                                 url=L10n.get('contacts.social_networks.website.button.link'))
         )
 
         markup.row(
@@ -524,24 +515,25 @@ def callback_query_contacts(call):
     bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
 
 
-@bot.message_handler(commands=['auth'])
-def auth(message):
-    client = message.client
+@bot.message_handler(commands=['profile'])
+def profile(message):
+    text, markup = cmd_profile(bot, message=message)
+    if text and markup:
+        bot.send_message(message.chat.id, text, reply_markup=markup)
 
-    if not client.get('phone_number'):
-        text = 'Вход для студентов.'
 
-        markup = ReplyKeyboardMarkup(one_time_keyboard=True)
-        markup.add(KeyboardButton(text='🔑 Войти', request_contact=True))
+@bot.callback_query_handler(func=lambda call: call.parsed_data.get('profile') is not None)
+def callback_query_profile(call):
+    pd_profile = call.parsed_data.get('profile')
+    pd_edit = call.parsed_data.get('edit', None)
+
+    if pd_profile == 'edit':
+        text, markup = cmd_profile_edit(message=None, bot=bot, call=call, edit=pd_edit)
     else:
-        text, markup = cmd_auth(message.chat.id)
+        text, markup = cmd_profile(bot, call=call)
 
-    bot.send_message(message.chat.id, text, reply_markup=markup)
-
-
-@bot.callback_query_handler(func=lambda call: call.parsed_data.get('auth') is not None)
-def callback_query_auth(call):
-    client = call.client
+    if text and markup:
+        bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: call.parsed_data.get('about_bot') is True)
@@ -564,7 +556,7 @@ def callback_query_contact(message):
             if message.reply_to_message.from_user.is_bot:
                 bot.delete_message(message.chat.id, message.reply_to_message.id)
 
-        text, markup = cmd_auth(message.chat.id)
+        text, markup = cmd_profile(bot, message=message)
 
         bot.send_message(message.chat.id, text, reply_markup=markup)
 

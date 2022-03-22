@@ -3,3 +3,4 @@ schedule
 pymongo
 fpdf==1.7.2
 urllib3==1.26.8
+python-dateutil

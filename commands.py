@@ -8,7 +8,7 @@ import fpdf
 
 from operator import itemgetter
 
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 
 from utils import get_fast_auth_url
 from storage import *
@@ -22,6 +22,10 @@ def cmd_start():
     text = L10n.get("start")
 
     markup = InlineKeyboardMarkup()
+
+    markup.row(
+        InlineKeyboardButton(L10n.get('start.button.profile'), callback_data='profile=y')
+    )
 
     markup.row(
         InlineKeyboardButton(L10n.get('start.button.schedule'), callback_data='schedule=y')
@@ -383,17 +387,236 @@ def add_schedule_buttons(markup, link, include_menu_button, include_back_button)
     return markup
 
 
-def cmd_auth(uid):
-    auth_url = get_fast_auth_url(uid)
+def cmd_profile_edit(message, call, bot, edit=None):
+    if not message:
+        client = call.client
+        message = call.message
+    else:
+        client = message.client
 
-    text = L10n.get('auth.students')
+    student = storage.get_student_by_id(client.get('sid'))
+
+    if not student:
+        markup = InlineKeyboardMarkup()
+        markup.row(
+            InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y')
+        )
+        return L10n.get('profile.student_not_found'), markup
+
     markup = InlineKeyboardMarkup()
 
-    markup.row(
-        InlineKeyboardButton(L10n.get('auth.students.button'), url=auth_url)
-    )
+    if edit == 'employer':
+        text = 'Отправьте название компании, в которой вы сейчас работаете.'
+
+        markup.row(InlineKeyboardButton('Не работаю', callback_data='profile=edit&edit=bezdelnik'))
+        markup.row(InlineKeyboardButton('Отмена', callback_data='profile=edit&edit=cancel'))
+
+        bot.register_next_step_handler(message, cmd_profile_edit, bot=bot, call=call, edit='employer_set')
+    elif edit == 'employer_set':
+        client['employer'] = message.text
+        storage.save_client(message.from_user, client)
+
+        bot.delete_message(message.chat.id, message.id)
+        bot.delete_message(call.message.chat.id, call.message.id)
+
+        text = 'Где расположена компания?\n\n<i>Нам нужно знать, в каком городе компания платит налоги.</i>'
+
+        markup.row(
+            InlineKeyboardButton('Москва', callback_data='profile=edit&edit=employer_l_moscow'),
+            InlineKeyboardButton('МО', callback_data='profile=edit&edit=employer_l_oblast'),
+            InlineKeyboardButton('Другой', callback_data='profile=edit&edit=employer_l_other'),
+        )
+
+        markup.row(InlineKeyboardButton('Отмена', callback_data='profile=edit&edit=cancel'))
+
+        bot.send_message(call.message.chat.id, text=text, reply_markup=markup)
+
+        return None, None
+    elif edit in ('employer_l_moscow', 'employer_l_oblast', 'employer_l_other'):
+        if edit == 'employer_l_moscow':
+            client['employer_l'] = 'Москва'
+        elif edit == 'employer_l_oblast':
+            client['employer_l'] = 'Московская область'
+        else:
+            client['employer_l'] = 'Другое'
+
+        storage.save_client(call.from_user, client)
+
+        text = 'Вы работаете по специальности?'
+
+        markup.row(
+            InlineKeyboardButton('Да', callback_data='profile=edit&edit=employer_1'),
+            InlineKeyboardButton('Нет', callback_data='profile=edit&edit=employer_2'),
+        )
+
+        markup.row(InlineKeyboardButton('Отмена', callback_data='profile=edit&edit=cancel'))
+    elif edit in ('bezdelnik', 'employer_1', 'employer_2'):
+        old = {
+            'potential_employer_1': student['potential_employer_1'],
+            'potential_employer_location_1': student['potential_employer_location_1'],
+            'potential_employer_2': student['potential_employer_2'],
+            'potential_employer_location_2': student['potential_employer_location_2']
+        }
+
+        if edit == 'bezdelnik':
+            bot.clear_step_handler(call.message)
+
+            client['employer'] = None
+            client['employer_l'] = None
+
+            student['potential_employer_1'] = None
+            student['potential_employer_location_1'] = None
+            student['potential_employer_2'] = None
+            student['potential_employer_location_2'] = None
+        else:
+            student['potential_employer_1' if edit == 'employer_1' else 'potential_employer_2'] = client['employer']
+            student['potential_employer_location_1' if edit == 'employer_1' else 'potential_employer_location_2'] = client['employer_l']
+            student['potential_employer_2' if edit == 'employer_1' else 'potential_employer_1'] = None
+            student['potential_employer_location_2' if edit == 'employer_1' else 'potential_employer_location_1'] = None
+
+        new = {
+            'potential_employer_1': student['potential_employer_1'],
+            'potential_employer_location_1': student['potential_employer_location_1'],
+            'potential_employer_2': student['potential_employer_2'],
+            'potential_employer_location_2': student['potential_employer_location_2']
+        }
+
+        potential_employer_history = student.get('potential_employer_history', [])
+        if type(potential_employer_history) != list:
+            potential_employer_history = []
+
+        potential_employer_history.append({
+            'old': old,
+            'new': new,
+            'timestamp': datetime.datetime.now().timestamp()
+        })
+
+        student['potential_employer_history'] = potential_employer_history
+
+        storage.save_student(student)
+
+        text = 'Изменения сохранены.'
+        markup.row(InlineKeyboardButton(L10n.get('profile.button'), callback_data='profile=y'))
+    elif edit == 'email':
+        text = 'Редактируем почту.'
+    elif edit == 'cancel':
+        bot.clear_step_handler(call.message)
+        text = 'Редактирование отменено.'
+        markup.row(InlineKeyboardButton(L10n.get('profile.button'), callback_data='profile=y'))
+    else:
+        text = 'Для редактирования Профиля используйте клавиатуру.'
+
+        markup.row(InlineKeyboardButton('Место трудоустройства', callback_data='profile=edit&edit=employer'))
+
+        markup.row(InlineKeyboardButton(L10n.get('profile.button'), callback_data='profile=y'))
 
     return text, markup
+
+
+def cmd_profile(bot, message=None, call=None):
+    if call:
+        client = call.client
+        message = call.message
+    else:
+        client = message.client
+
+    phone_number = client.get('phone_number')
+
+    if not phone_number:
+        bot.delete_message(message.chat.id, message.id)
+        markup = ReplyKeyboardMarkup(one_time_keyboard=True)
+        markup.add(KeyboardButton(text=L10n.get('profile.auth.button'), request_contact=True))
+        bot.send_message(message.chat.id, text=L10n.get('profile.auth'), reply_markup=markup)
+        return None, None
+
+    if client.get('sid'):
+        student = storage.get_student_by_id(client.get('sid'))
+    else:
+        student = storage.get_student_data_by_phone_number(phone_number)
+        if student:
+            client['sid'] = student.get_id()
+            storage.save_client(message.from_user, client)
+
+    if not student:
+        markup = InlineKeyboardMarkup()
+        markup.row(
+            InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y')
+        )
+        return L10n.get('profile.auth.student_not_found'), markup
+
+    gid = student.get('gid') or L10n.get('profile.student.group.empty')
+    speciality = student.get('speciality_name') or L10n.get('profile.student.speciality.empty')
+
+    text = L10n.get('profile.student').format(
+        name=student.get_name(include_middle_name=True),
+        group=gid,
+        speciality=speciality
+    )
+
+    text += cmd_profile_employer(student)
+    text += cmd_profile_future_plans(student)
+
+    markup = InlineKeyboardMarkup()
+    #markup.row(InlineKeyboardButton(L10n.get('profile.edit.button'), url=get_fast_auth_url(message.from_user.id, 'edit_profile')))
+
+    markup.row(
+        InlineKeyboardButton('Изменить профиль', callback_data='profile=edit')
+    )
+
+    markup.row(InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y'))
+
+    return text, markup
+
+
+def cmd_profile_employer(student):
+    text = ''
+    employer_1 = student.get('potential_employer_1')
+    employer_2 = student.get('potential_employer_2')
+
+    if employer_1:
+        employer_l_1 = student.get('potential_employer_location_1')
+        if not employer_l_1:
+            employer_l_1 = L10n.get('profile.student.employer.l.1.empty')
+
+        text += L10n.get('profile.student.employer.1').format(employer_1, employer_l_1)
+
+    if employer_2:
+        employer_l_2 = student.get('potential_employer_location_2')
+        if not employer_l_2:
+            employer_l_2 = L10n.get('profile.student.employer.l.2.empty')
+
+        text += L10n.get('profile.student.employer.2').format(employer_2, employer_l_2)
+
+    if text:
+        text = '\n\n' + L10n.get('profile.student.employer') + '\n' + text
+    else:
+        text = '\n\n' + L10n.get('profile.student.employer.empty')
+
+    return text
+
+
+def cmd_profile_future_plans(student):
+    text = ''
+    sex = student.get('sex')
+    army = student.get('future_plans_army')
+    fp_e_full_time = student.get('future_plans_full_time_education_basis')
+    fp_e_part_time = student.get('future_plans_full_time_education_basis')
+
+    text += '\n\n' + L10n.get('profile.student.future') + '\n'
+
+    if fp_e_full_time and fp_e_part_time:
+        text += L10n.get('profile.student.future.vuz')
+    elif fp_e_full_time:
+        text += L10n.get('profile.student.future.vuz.full_time')
+    elif fp_e_part_time:
+        text += L10n.get('profile.student.future.vuz.part_time')
+
+    if sex == 1 and army == 1:
+        if fp_e_full_time or fp_e_part_time:
+            text += '\n'
+        text += L10n.get('profile.student.future.army')
+
+    return text
 
 
 def cmd_about_bot():
