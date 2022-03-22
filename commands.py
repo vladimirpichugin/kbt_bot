@@ -133,6 +133,8 @@ def cmd_faq(faq=None, include_menu=False):
 
     q = L10n.get('faq.{}.q'.format(faq))
     a = L10n.get('faq.{}.a'.format(faq))
+    button = L10n.get('faq.{}.button'.format(faq))
+    button_link = L10n.get('faq.{}.button.link'.format(faq))
 
     text = L10n.get('faq.body').format(
         q=q, a=a, qid=faq+1, qmax=questions+1
@@ -142,6 +144,11 @@ def cmd_faq(faq=None, include_menu=False):
 
     faq_previous = faq-1 if faq > 0 else questions
     faq_next = faq+1 if faq < questions else 0
+
+    if button and button_link:
+        markup.row(
+            InlineKeyboardButton(button, url=button_link)
+        )
 
     markup.row(
         InlineKeyboardButton(L10n.get('previous.button'), callback_data=json.dumps({'faq': faq_previous})),
