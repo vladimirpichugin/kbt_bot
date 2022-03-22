@@ -95,9 +95,22 @@ def cmd_schedule(faculty=None, include_teacher=False, include_menu=True):
 
         return text, markup
 
-    for _ in range(0, len(Settings.GROUPS), 4):
-        buttons = [InlineKeyboardButton(faculty, callback_data='faculty={}'.format(faculty)) for faculty in
-                   list(Settings.GROUPS.keys())[_:_ + 4]]
+    faculties = list()
+    for faculty, faculty_o in Settings.GROUPS.items():
+        if len(faculty_o.get('GROUPS', [])) == 1:
+            group_name = faculty_o.get('GROUPS')[0]
+            group_name_view = group_name
+
+            if group_name == 'И32-19':
+                group_name_view = '🥰 И32-19'
+
+            faculties.append((group_name_view, 'group_name={}'.format(group_name)))
+        else:
+            faculties.append((faculty, 'faculty={}'.format(faculty)))
+
+    for _ in range(0, len(faculties), 4):
+        buttons = [InlineKeyboardButton(name, callback_data=callback_data) for name, callback_data in
+                   faculties[_:_ + 4]]
         markup.row(*buttons)
 
     if include_teacher:
