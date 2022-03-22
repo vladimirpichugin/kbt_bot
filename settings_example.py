@@ -19,7 +19,7 @@ class Settings:
     MONGO = ''
     MONGO_DATABASE = ''
     COLLECTIONS = {
-        'clients': 'clients',
+        'clients': 'clients_test',
         'schedule': 'schedule',
         'students': 'students'
     }
