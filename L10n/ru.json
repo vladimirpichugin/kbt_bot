@@ -28,7 +28,7 @@
     "schedule.head": "Расписание на <b>{date}</b>",
     "schedule.body": "Группа <b>{group_name} <u>{room}</u></b>\n{lessons}",
     "schedule.body.lesson": "<b>№ {l_id} <u>{l_time}</u>.</b> {lesson}",
-    "schedule.faculty_not_found": "Группы «{faculty}» не найдены.",
+    "schedule.faculty_not_found": "Группа «{faculty}» не найдена.",
     "schedule.unsubscribe": "&#10071; Вы отписались от расписание группы <b>{group_name}</b>.",
     "schedule.unsubscribe.alert": "Вы отписались от расписания группы «{group_name}».",
     "schedule.subscribe": "&#9989; Вы подписались на расписание группы <b>{group_name}</b>.",
@@ -55,11 +55,11 @@
     "schedule.by_teacher.body.lesson": "<b>№ {l_id} <u>{l_time}</u> {group_name}. {lesson}</b>\n{info}",
     "schedule.by_teacher.not_found": "&#10071; Нет расписания для преподавателя <b>{teacher}</b> на <b>{date}</b>.",
 
-    "contacts": "\uD83D\uDCDE Контактные данные\n\nСекретарь:\n<b>Кустова Ольга Анатольевна</b>\n+7 499 253-59-31\n\nЭлектронная почта:\n<code>kbt@edu.mos.ru</code>",
+    "contacts": "\uD83D\uDCDE Контактные данные\n\nСекретарь:\n<b>Кустова Ольга Анатольевна</b>\n+7 499 253 59 31\n\nЭлектронная почта:\n<code>kbt@edu.mos.ru</code>",
     "contacts.staff.button": "Руководство. Педагогический состав",
     "contacts.staff.button.link": "https://kbt.moscow/staff",
-    "contacts.address": "Как добраться?\n\nАдрес:\n<code>Москва, ул. Пресненский Вал, 15, стр. 1</code>\n\nВыход из метро Улица 1905 года (последний вагон из центра) к площади Краснопресненская застава. Автобусная остановка Метро \"Улица 1905 года\" около ресторана \"16 Тонн\" (автобус: 12, 54; т18). Ехать до остановки \"Большой Тишинский переулок\".\n\nВыход из метро Белорусская к площади Тверская застава. Далее на улицу Грузинский вал до остановки \"Большой Кондратьевский переулок\" (автобус: 12, т18). Ехать до остановки \"Большой Тишинский переулок\".",
-    "contacts.address.button": "Как добраться?",
+    "contacts.address": "\uD83E\uDDED Как добраться?\n\nАдрес:\n<code>Москва, ул. Пресненский Вал, 15, стр. 1</code>\n\nВыход из метро Улица 1905 года (последний вагон из центра) к площади Краснопресненская застава. Автобусная остановка Метро \"Улица 1905 года\" около ресторана \"16 Тонн\" (автобус: 12, 54; т18). Ехать до остановки \"Большой Тишинский переулок\".\n\nВыход из метро Белорусская к площади Тверская застава. Далее на улицу Грузинский вал до остановки \"Большой Кондратьевский переулок\" (автобус: 12, т18). Ехать до остановки \"Большой Тишинский переулок\".",
+    "contacts.address.button": "\uD83E\uDDED Как добраться?",
     "contacts.virtual_tour.button": "Виртуальный тур",
     "contacts.virtual_tour.button.link": "https://youtu.be/jyBouaJ_pAY",
     "contacts.social_networks": "❤ Наши социальные сети.",
@@ -70,7 +70,7 @@
     "contacts.social_networks.telegram.button": "\uD83D\uDC99 Новости в Telegram",
     "contacts.social_networks.telegram.button.link": "https://t.me/kbt_moscow?utm_source=telegram_bot&utm_medium=MosKBT_BOT",
 
-    "faq.body": "Вопрос {qid} из {qmax}:\n<b>{q}</b>\n\n{a}",
+    "faq.body": "\uD83E\uDD14 Вопрос {qid} из {qmax}:\n<b>{q}</b>\n\n{a}",
     "faq.0.q": "Как подать заявление на бюджет?",
     "faq.0.a": "Для этого Вы можете воспользоваться услугой «Запись в колледж»",
     "faq.0.button": "\uD83D\uDC49 Запись в колледж",
@@ -103,7 +103,7 @@
     "faq.12.a": "В период с 1 июля по 25 августа на сайте колледже в разделе \"Приемная комиссия\" публикуются данные по среднему баллу аттестата абитуриентов. Эти данные могут помочь спрогнозировать вероятность поступления на бюджетное место по выбранной специальности.",
 
     "abiturient": "\uD83D\uDDC2 Информация для абитуриентов.",
-    "abiturient.button.faq": "Ответы на частые вопросы",
+    "abiturient.button.faq": "\uD83E\uDD14 Ответы на частые вопросы",
     "abiturient.1.button": "на базе 9 классов",
     "abiturient.1.button.link": "https://priem.kbt.moscow/9-klassov",
     "abiturient.2.button": "на базе 11 классов",
@@ -163,8 +163,8 @@
     "profile.student.edit.email": "Отправьте адрес своей электронной почты.\n\n<u>Бот напишет письмо для подтверждения адреса.</u>",
 
 
-    "student_cert": "Справку об обучении можно заказать через онлайн форму.",
-    "student_cert.button": "\uD83D\uDC49 Открыть форму",
+    "student_cert": "\uD83D\uDCD5 Справку об обучении можно заказать через онлайн форму.",
+    "student_cert.button": "\uD83D\uDCD5 Получить справку",
     "student_cert.button.link": "https://kbt.moscow/spravka",
 
     "error.callback_query": "❗ Возникла ошибка, попробуйте еще раз.",
@@ -182,7 +182,7 @@
     "months.November": "ноября",
     "months.December": "декабря",
 
-    "about_bot": "⚙ Бот разработан студентом КБТ.\n\nИсходный код опубликован в GitHub репозитории.\n\nЕсть идея или заметили ошибку? Напишите на почту: dev@kbt.moscow",
+    "about_bot": "⚙ Бот разработан студентом КБТ.\n\nИсходный код опубликован в публичном репозитории GitHub.\n\nЕсть идея или заметили ошибку? Напишите на почту: dev@kbt.moscow",
     "about_bot.button": "\uD83D\uDC49 Репозиторий GitHub",
     "about_bot.button.link": "https://github.com/vladimirpichugin/kbt_bot"
 }
