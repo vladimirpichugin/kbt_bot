@@ -533,7 +533,10 @@ def callback_query_profile(call):
         text, markup = cmd_profile(bot, call=call)
 
     if text and markup:
-        bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
+        if call.parsed_data.get('editing_prohibited'):
+            bot.send_message(call.message.chat.id, text, reply_markup=markup)
+        else:
+            bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: call.parsed_data.get('about_bot') is True)
