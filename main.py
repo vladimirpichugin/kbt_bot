@@ -49,6 +49,10 @@ def middleware_handler_message(bot_instance, message):
     client = storage.get_client(message.from_user)
     message.client = client
 
+    if not client.get('first_message_timestamp'):
+        client['first_message_timestamp'] = message.date
+        storage.save_client(message.from_user, client)
+
     try:
         args = message.text.split(' ')
         cmd = args[0][1:] if args[0][0] == '/' else None
