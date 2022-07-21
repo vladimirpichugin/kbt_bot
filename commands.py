@@ -28,18 +28,19 @@ def cmd_start():
     #)
 
     markup.row(
-        InlineKeyboardButton(L10n.get('start.button.schedule'), callback_data='schedule=y')
+        InlineKeyboardButton(L10n.get('start.button.schedule'), callback_data='schedule=y'),
+        InlineKeyboardButton(L10n.get('start.button.student_cert'), url=L10n.get('student_cert.button.link'))
     )
 
     markup.row(
         InlineKeyboardButton(L10n.get('start.button.abiturient'), callback_data='abiturient=y'),
-        InlineKeyboardButton(L10n.get('start.button.student_cert'), callback_data='student_cert=y')
+        #InlineKeyboardButton(L10n.get('start.button.website'), url=L10n.get('start.button.website.link')),
+        InlineKeyboardButton(L10n.get('start.button.social_networks'), callback_data='contacts=social_networks'),
+        InlineKeyboardButton(L10n.get('start.button.contacts'), callback_data='contacts=y')
     )
 
     markup.row(
-        InlineKeyboardButton(L10n.get('start.button.website'), url=L10n.get('start.button.website.link')),
-        InlineKeyboardButton(L10n.get('start.button.social_networks'), callback_data='contacts=social_networks'),
-        InlineKeyboardButton(L10n.get('start.button.contacts'), callback_data='contacts=y')
+        InlineKeyboardButton(L10n.get('chat.button'), url=L10n.get('chat.button.link'))
     )
 
     markup.row(
@@ -801,98 +802,16 @@ def cmd_about_bot():
 
     markup = InlineKeyboardMarkup()
     markup.row(InlineKeyboardButton(L10n.get('about_bot.button'), url=L10n.get('about_bot.button.link')))
+    markup.row(InlineKeyboardButton(L10n.get('chat.button'), url=L10n.get('chat.button.link')))
     markup.row(InlineKeyboardButton(L10n.get('menu.button'), callback_data='menu=y'))
 
     return text, markup
 
 
-def cmd_zp(bot, message):
-    client = message.client
-    text = message.text
+def cmd_chat():
+    text = L10n.get('chat')
 
-    try:
-        args = text.split(' ')
+    markup = InlineKeyboardMarkup()
+    markup.row(InlineKeyboardButton(L10n.get('chat.button'), url=L10n.get('chat.button.link')))
 
-        if 'запомни' in text:
-            pattern = re.compile(r'^([А-Я]{1,2}[0-9]{1,2}\-[0-9]{2})?', flags=re.IGNORECASE)
-            match = re.fullmatch(pattern, args[2])
-            if not match:
-                logger.debug(match)
-                bot.send_message(message.chat.id, 'Ошибка в группе.')
-                return False
-
-            client['_zp_value_group'] = args[2]
-            client['_zp_value_fio'] = ' '.join(args[3:])
-            storage.save_client(message.from_user, client)
-            bot.send_message(message.chat.id, 'Сохранено.')
-            return False
-
-        from_date = str(args[1])
-        to_date = str(args[2])
-        people = int(args[3])
-    except:
-        bot.send_message(message.chat.id,
-                         'Например, для заявки с 24 по 28 января на 10 человек: <code>/зп 24.01.22 28.01.22 10</code>\n\nЗапомнить группу и ФИО: <code>/зп запомни И32-19 Романова Н. С.</code>')
-        return False
-
-    body = [
-        [110, 10, 'Заместителю директора ГБПОУ КБТ'],
-        [110, 16, 'Воробьевой О. Б.'],
-        [110, 21, 'От куратора'],
-        [110, 26, '%fio%'],
-        [110, 31, 'Группы %group%'],
-        [95, 70, 'Заявка'],
-        [15, 90, 'В период с %from_date% года по %to_date% года'],
-        [15, 96, 'группа %group% будет питаться в количестве %people%.'],
-        [130, 130, '__________ / %fio%'],
-        [15, 130, '%from_date%']
-    ]
-
-    placeholders = dict()
-    placeholders['fio'] = client.get('_zp_value_fio', 'Куратор')
-    placeholders['group'] = client.get('_zp_value_group', 'Группа')
-    placeholders['from_date'] = from_date
-    placeholders['to_date'] = to_date
-    placeholders['people'] = '{} человек'.format(people)
-
-    try:
-        for placeholder in ['from_date', 'to_date']:
-            dt = datetime.datetime.strptime(placeholders[placeholder], '%d.%m.%y')
-            date = dt.strftime('«%d» %B %Y').split(' ')
-            date[1] = L10n.get("months.{month}".format(month=date[1]))
-            date = ' '.join(date)
-            placeholders[placeholder] = date
-    except ValueError:
-        bot.send_message(message.chat.id, 'Ошибка в дате.\nПример даты: <code>01.12.21</code>')
-        return False
-
-    pdf = fpdf.FPDF()
-    pdf.add_page()
-
-    pdf.add_font('DejaVu', '', 'assets/DejaVuSansCondensed.ttf', uni=True)
-    pdf.set_font('DejaVu', '', 15)
-
-    for line in body:
-        txt = line[2]
-
-        for placeholder, placeholder_value in placeholders.items():
-            txt = txt.replace(f'%{placeholder}%', placeholder_value.strip().replace('\n', ''))
-
-        pdf.text(x=float(line[0]), y=float(line[1]), txt=txt)
-
-    pdf_file = '{} {}-{} {}.pdf'.format(
-        placeholders['group'], from_date, to_date, placeholders['fio']
-    )
-
-    share_directory = os.path.join(os.getcwd(), 'share')
-
-    if not os.path.exists(share_directory):
-        os.makedirs(share_directory)
-
-    pdf_file = os.path.join(share_directory, pdf_file)
-
-    pdf.output(pdf_file, 'F')
-
-    with open(pdf_file, 'rb') as f:
-        bot.send_document(message.chat.id, data=f)
-        f.close()
+    return text, markup

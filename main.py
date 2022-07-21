@@ -549,6 +549,12 @@ def callback_query_about_bot(call):
     bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
 
 
+@bot.callback_query_handler(func=lambda call: call.parsed_data.get('chat') is True)
+def callback_query_about_bot(call):
+    text, markup = cmd_chat()
+    bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
+
+
 @bot.message_handler(content_types=['contact'])
 def callback_query_contact(message):
     if message.contact is not None:

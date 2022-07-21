@@ -6,12 +6,12 @@
     "start.button.schedule": "\uD83D\uDCCB Расписание",
     "start.button.student_cert": "\uD83D\uDCD5 Справка об обучении",
     "start.button.contacts": "\uD83D\uDCDE Контакты",
-    "start.button.abiturient": "\uD83D\uDDC2 Абитуриентам",
+    "start.button.abiturient": "\uD83D\uDDC2 Абитуриент",
     "start.button.staff": "Преподаватели и сотрудники",
     "start.button.website": "\uD83D\uDC49 Веб-сайт",
     "start.button.website.link": "https://cbcol.mskobr.ru?utm_source=telegram_bot&utm_medium=MosKBT_BOT",
-    "start.button.social_networks": "❤ Соц. сети",
-    "start.button.about_bot": "⚙ О боте",
+    "start.button.social_networks": "\u2764\uFE0F Соц. сети",
+    "start.button.about_bot": "\u2699\uFE0F Исходный код бота",
 
     "menu.button": "<< Меню",
     "profile.button": "ℹ Профиль",
@@ -118,7 +118,7 @@
     "profile.auth.button": "\uD83D\uDD11 Войти",
     "profile.auth.student_not_found": "\uD83D\uDD11 Ваш запрос на вход в <b>ℹ Профиль студента</b> получен.\n\nМы напишем, когда кураторы групп предоставят актуальные списки студентов.\n\nЕсли остались вопросы: dev@kbt.moscow",
     "profile.edit.website.button": "Изменить профиль",
-    "profile.student_not_found": "\uD83D\uDD11 Войдите, чтобы продолжить.\n\nЕсли остались вопросы: dev@kbt.moscow",
+    "profile.student_not_found": "\uD83D\uDD11 Войдите, чтобы продолжить.",
     "profile.student": "ℹ Профиль студента КБТ:\n<b>{name}</b>\n\nГруппа: <b>{group}</b>\nСпециальность: <b>{speciality}</b>",
     "profile.student.group.empty": "❗ Не указана",
     "profile.student.speciality.empty": "❗ Не указана",
@@ -168,6 +168,14 @@
     "student_cert.button": "\uD83D\uDCD5 Получить справку",
     "student_cert.button.link": "https://kbt.moscow/spravka",
 
+    "about_bot": "⚙ Бот разработан студентом КБТ в рамках практики.\nИсходный код размещён в публичном репозитории GitHub.",
+    "about_bot.button": "\uD83D\uDC49 Репозиторий GitHub",
+    "about_bot.button.link": "https://github.com/vladimirpichugin/kbt_bot",
+
+    "chat": "\uD83D\uDC68\u200D\uD83D\uDCBB Ищем новые знакомства для общения, совместных проектов и обмена опытом в новом Телеграм-чате.\n\n<b>Чат создан выпускниками и не относится к образовательному учреждению.</b>",
+    "chat.button": "\uD83D\uDC68\u200D\uD83D\uDCBB \uD83D\uDCAC Чат для начинающих разработчиков",
+    "chat.button.link": "https://t.me/+DTN4xWhGJ4Y1NDI6",
+
     "error.callback_query": "❗ Возникла ошибка, попробуйте еще раз.",
 
     "months.January": "января",
@@ -181,9 +189,5 @@
     "months.September": "сентября",
     "months.October": "октября",
     "months.November": "ноября",
-    "months.December": "декабря",
-
-    "about_bot": "⚙ Бот разработан студентом КБТ.\n\nИсходный код опубликован в публичном репозитории GitHub.\n\nЕсть идея или заметили ошибку? Напишите на почту: dev@kbt.moscow",
-    "about_bot.button": "\uD83D\uDC49 Репозиторий GitHub",
-    "about_bot.button.link": "https://github.com/vladimirpichugin/kbt_bot"
+    "months.December": "декабря"
 }
