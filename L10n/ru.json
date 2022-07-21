@@ -113,6 +113,7 @@
     "abiturient.4.button": "Списки на зачисление",
     "abiturient.4.button.link": "https://priem.kbt.moscow/list",
 
+    "profile.disabled": "\uD83D\uDE22 Очень жаль, но <b>ℹ Профиль студента</b> отключён.",
     "profile.auth": "\uD83D\uDD11 Нажмите на кнопку, чтобы войти в <b>ℹ Профиль студента</b>.\nПодтвердите предоставлена доступа к номеру телефона.",
     "profile.auth.button": "\uD83D\uDD11 Войти",
     "profile.auth.student_not_found": "\uD83D\uDD11 Ваш запрос на вход в <b>ℹ Профиль студента</b> получен.\n\nМы напишем, когда кураторы групп предоставят актуальные списки студентов.\n\nЕсли остались вопросы: dev@kbt.moscow",

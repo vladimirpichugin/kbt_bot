@@ -23,9 +23,9 @@ def cmd_start():
 
     markup = InlineKeyboardMarkup()
 
-    markup.row(
-        InlineKeyboardButton(L10n.get('start.button.profile'), callback_data='profile=y')
-    )
+    #markup.row(
+    #    InlineKeyboardButton(L10n.get('start.button.profile'), callback_data='profile=y')
+    #)
 
     markup.row(
         InlineKeyboardButton(L10n.get('start.button.schedule'), callback_data='schedule=y')
@@ -408,6 +408,11 @@ def add_schedule_buttons(markup, link, include_menu_button, include_back_button)
 
 
 def cmd_profile_edit(message, call, bot, edit=None):
+    if call:
+        message = call.message
+        bot.delete_message(message.chat.id, message.id)
+    return L10n.get('profile.disabled'), get_menu_markup()
+
     if not message:
         client = call.client
         message = call.message
@@ -466,6 +471,11 @@ def cmd_profile_edit_email(message, call, bot, edit, client, student):
 
 
 def cmd_profile_edit_future_plans(message, call, bot, edit, client, student):
+    if call:
+        message = call.message
+        bot.delete_message(message.chat.id, message.id)
+    return L10n.get('profile.disabled'), get_menu_markup()
+
     markup = InlineKeyboardMarkup()
 
     if edit in ('army_y', 'army_y_already', 'army_n', 'army_n_other'):
@@ -571,6 +581,11 @@ def cmd_profile_edit_future_plans(message, call, bot, edit, client, student):
 
 
 def cmd_profile_edit_employer(message, call, bot, edit, client, student):
+    if call:
+        message = call.message
+        bot.delete_message(message.chat.id, message.id)
+    return L10n.get('profile.disabled'), get_menu_markup()
+
     text = ''
     markup = InlineKeyboardMarkup()
 
@@ -673,6 +688,11 @@ def cmd_profile_edit_employer(message, call, bot, edit, client, student):
 
 
 def cmd_profile(bot, message=None, call=None):
+    if call:
+        message = call.message
+        bot.delete_message(message.chat.id, message.id)
+    return L10n.get('profile.disabled'), get_menu_markup()
+
     if call:
         client = call.client
         message = call.message
