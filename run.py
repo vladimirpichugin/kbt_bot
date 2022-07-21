@@ -34,7 +34,8 @@ if __name__ == "__main__":
                 main.logger.error("Schedule jobs not found, shutting down..")
                 break
 
-            schedule.run_pending()
+            if main.Settings.NOTIFY:
+                schedule.run_pending()
 
             time.sleep(10)
         except KeyboardInterrupt:

@@ -28,6 +28,7 @@ class Settings:
 
     SCHEDULE_NOTIFY_START_TIME = '10:00'  # Начнется проверка на наличие расписания для рассылки.
     SCHEDULE_NOTIFY_PAUSE_TIME = 60 * 5  # Если расписание не найдено, то рассылка может быть отложена на это время.
+    NOTIFY = True
 
     DOMAIN = 'https://cbcol.mskobr.ru'
 
