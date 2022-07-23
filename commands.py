@@ -812,6 +812,9 @@ def cmd_chat():
     text = L10n.get('chat')
 
     markup = InlineKeyboardMarkup()
-    markup.row(InlineKeyboardButton(L10n.get('chat.button'), url=L10n.get('chat.button.link')))
+    markup.row(
+        InlineKeyboardButton(L10n.get('chat.no.button'), callback_data='chat=n'),
+        InlineKeyboardButton(L10n.get('chat.button'), url=L10n.get('chat.button.link'))
+    )
 
     return text, markup

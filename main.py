@@ -549,9 +549,9 @@ def callback_query_about_bot(call):
     bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
 
 
-@bot.callback_query_handler(func=lambda call: call.parsed_data.get('chat') is True)
+@bot.callback_query_handler(func=lambda call: call.parsed_data.get('chat', None) is not None)
 def callback_query_about_bot(call):
-    if call.parsed_data.get('deny'):
+    if not call.parsed_data.get('chat'):
         bot.delete_message(call.message.chat.id, call.message.id)
         return
 
