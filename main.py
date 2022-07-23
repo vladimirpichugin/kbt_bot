@@ -51,7 +51,6 @@ def middleware_handler_message(bot_instance, message):
 
         if message.entities:
             for entity in message.entities:
-                logger.debug(entity)
                 if entity.type == 'bot_command':
                     cmd = message.text[entity.offset + 1:entity.length + 1]
 
