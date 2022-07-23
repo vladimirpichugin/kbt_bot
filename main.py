@@ -46,19 +46,19 @@ def bot_polling():
 
 @bot.middleware_handler(update_types=['message'])
 def middleware_handler_message(bot_instance, message):
-    client = storage.get_client(message.from_user)
-    message.client = client
-
-    if not client.get('first_message_timestamp'):
-        client['first_message_timestamp'] = message.date
-        storage.save_client(message.from_user, client)
-
     try:
-        args = message.text.split(' ')
-        cmd = args[0][1:] if args[0][0] == '/' else None
+        cmd, args = None, message.text.split(' ')
 
-        if cmd:
-            del args[0]
+        if message.entities:
+            for entity in message.entities:
+                logger.debug(entity)
+                if entity.type == 'bot_command':
+                    cmd = message.text[entity.offset + 1:entity.length + 1]
+
+                    if '@' in cmd:
+                        cmd = cmd.split('@')[0]
+
+                    del args[0]
 
         text_args = ' '.join(args)
     except (IndexError, AttributeError):
@@ -69,6 +69,17 @@ def middleware_handler_message(bot_instance, message):
     message.args = args
     message.text_args = text_args
     message.cmd = cmd
+
+    client = storage.get_client(message.from_user)
+    message.client = client
+
+    if client.get('is_bot') is None:
+        client['is_bot'] = True
+
+    if client.get('first_message_timestamp') is None:
+        client['first_message_timestamp'] = message.date
+
+    storage.save_client(message.from_user, client)
 
 
 @bot.middleware_handler(update_types=['callback_query'])
@@ -93,7 +104,7 @@ def middleware_handler_callback_query(bot_instance, call):
 
     call.parsed_data = parsed_data
 
-    # Подгружаем клиента только при появлении аргументов.
+    # Подгружаем клиента только для команд из списка (проверка по аргументам).
     cmds = ['group_name', 'faculty', 'teacher', 'schedule', 'profile']
 
     for cmd in cmds:
