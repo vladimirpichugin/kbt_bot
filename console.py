@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: Vladimir Pichugin <vladimir@pichug.in>
+import schedule
 import datetime
 
 import main
@@ -21,7 +22,11 @@ def console_thread():
             if cmd == "notify":
                 console_cmd_notify(cmd_args)
             elif cmd == "help":
-                logger.info("Commands: notify")
+                logger.info("Commands: notify jobs")
+            elif cmd == "jobs":
+                logger.info("Schedule Jobs:")
+                for job in schedule.get_jobs():
+                    logger.info(f'{job}: {job.next_run.date()}')
             else:
                 logger.info("Command not found :C")
         except:
